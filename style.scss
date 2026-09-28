@@ -1,0 +1,111 @@
+@use "sass:list";
+
+// ===== Variables =====
+
+// Polices
+$font-ui:    'JetBrains Mono', ui-monospace, monospace;
+$font-prose: 'Cormorant Garamond', serif;
+$font-roman: 'Cinzel', serif;
+
+// Tailles de police
+// Interface (mono)
+$fs-tiny:  9px;  // libellés en capitales, tags, badges
+$fs-small: 10px; // surtitres, liens, statuts
+$fs-ui:    11px; // métadonnées, fiche identité, ascii
+$fs-code:  12px; // code, terminal
+// Prose (serif)
+$fs-note:  14px; // niveaux, colophon
+$fs-text:  16px; // aperçus
+$fs-body:  18px; // paragraphes
+$fs-lead:  20px; // chapôs
+// Titres (serif)
+$fs-subtitle: 26px; // timeline, arsenal, contacts
+$fs-heading:  30px; // titres de fragments
+$fs-title:    68px; // titres de chapitres
+$fs-display:  98px; // titre d'ouverture
+
+// Fonds
+$bg-page:  #040507;
+$bg-panel: #070a0f;
+
+// Texte, par rôle
+$text-title: #eaeef2; // titres, emphase
+$text-main:  #c2c8ce; // chapô, valeurs
+$text-prose: #9aa1a8; // paragraphes
+$text-code:  #8b929a; // code, ascii, tags
+$text-label: #5b626b; // libellés UI, métadonnées
+$text-off:   #3a4047; // éléments éteints, séparateurs
+
+// Bordures
+$border-soft:   rgba(120, 150, 190, .1);  // séparateurs internes
+$border:        rgba(120, 150, 190, .16); // contour des panneaux
+$border-strong: rgba(120, 150, 190, .25); // pointillés, nœuds, portrait
+
+// Couleurs des chapitres (miroir de this.colors dans le JS)
+$chapters: (
+  #4fa9ff, // c1
+  #6fe0d0, // c2
+  #a98bff, // c3
+  #ff5d6c, // c4
+  #f5b65a, // c5
+);
+
+// Accent du chapitre courant
+$acc-off:  #2a313a;                   // chapitre pas encore éveillé
+$acc:      var(--acc, #4fa9ff);       // lumière : points, curseurs, fil
+$acc-line: var(--acc, #{$acc-off});   // traits et bordures
+$acc-text: var(--acc, #{$text-code}); // texte teinté
+$acc-fade: 1s;                        // durée du passage à la couleur du chapitre
+
+// Mise en page
+$rail-width: 84px;
+$gutter:     72px;
+
+
+// ===== Mixins =====
+
+
+
+// ===== Classic =====
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+    margin: 0;
+    padding: 1em;
+    background: $bg-page;
+    color: $text-prose;
+    font-family: $font-ui;
+    -webkit-font-smoothing: antialiased;
+}
+
+// ===== Classes =====
+.chapter {
+    h1 {
+        font-size: $fs-display;
+        font-style: italic;
+        font-weight: normal;
+        font-family: $font-prose;
+        margin: 5em auto 0.05em auto;
+    }
+    h1 + hr {
+        max-width: 200px;
+        margin: 0 auto 1.5em 0;
+        border: none;
+        border-top: 2px solid $border;
+    }
+}
+
+// ===== Ids =====
+@for $i from 1 through list.length($chapters) {
+    #chapter#{$i} {
+        h1 {
+            color: #{list.nth($chapters, $i)};
+        }
+        hr {
+            border-color: #{list.nth($chapters, $i)};
+        }
+    }
+}
