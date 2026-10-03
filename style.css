@@ -15,6 +15,10 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.full-screen-space {
+  margin: 100vh 0;
+}
+
 .chapter h1 {
   font-size: 98px;
   font-style: italic;

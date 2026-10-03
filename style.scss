@@ -82,6 +82,10 @@ body {
 }
 
 // ===== Classes =====
+.full-screen-space {
+    margin: 100vh 0;
+}
+
 .chapter {
     h1 {
         font-size: $fs-display;
