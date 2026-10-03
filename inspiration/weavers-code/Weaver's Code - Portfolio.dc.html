@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics="">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&amp;family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&amp;family=JetBrains+Mono:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./weavers-code.css">
+<script src="./image-slot.js"></script>
+</helmet>
+
+<div ref="{{ setRoot }}" class="page">
+
+  <!-- ============ FIXED CHAPTER RAIL ============ -->
+  <nav class="rail">
+    <a href="#top" class="rail__brand">N<br>C</a>
+    <div class="rail__links">
+      <a data-rail="c1" href="#c1" class="rail__link">
+        <span class="rail__num">I</span>
+        <span class="rail__label">L'Éveil</span>
+      </a>
+      <a data-rail="c2" href="#c2" class="rail__link">
+        <span class="rail__num">II</span>
+        <span class="rail__label">Fragments</span>
+      </a>
+      <a data-rail="c3" href="#c3" class="rail__link">
+        <span class="rail__num">III</span>
+        <span class="rail__label">Arsenal</span>
+      </a>
+      <a data-rail="c4" href="#c4" class="rail__link">
+        <span class="rail__num">IV</span>
+        <span class="rail__label">Échos</span>
+      </a>
+      <a data-rail="c5" href="#c5" class="rail__link">
+        <span class="rail__num">V</span>
+        <span class="rail__label">Le Lien</span>
+      </a>
+    </div>
+    <div class="rail__palette">
+      <div data-pal="c1" class="rail__swatch"></div>
+      <div data-pal="c2" class="rail__swatch"></div>
+      <div data-pal="c3" class="rail__swatch"></div>
+      <div data-pal="c4" class="rail__swatch"></div>
+      <div data-pal="c5" class="rail__swatch"></div>
+    </div>
+  </nav>
+
+  <!-- ============ GLOBAL OVERLAYS ============ -->
+  <div class="overlay overlay--scanlines"></div>
+  <div class="overlay overlay--vignette"></div>
+
+  <!-- ============ MAIN ============ -->
+  <main id="top" class="main">
+
+    <!-- ============ I · L'ÉVEIL ============ -->
+    <section id="c1" data-chap="c1" class="hero">
+      <svg viewBox="0 0 600 600" preserveAspectRatio="none" class="hero__weave">
+        <g fill="none" stroke="var(--acc,#4fa9ff)" stroke-width="0.5" opacity="0.18">
+          <path d="M600 40 Q 380 180 600 320"></path>
+          <path d="M600 120 Q 340 300 600 460"></path>
+          <path d="M600 220 Q 300 380 600 560"></path>
+          <path d="M600 -20 Q 420 120 600 200"></path>
+        </g>
+      </svg>
+
+      <div class="hero__intro">
+        <div class="hero__kicker">chronicle.exe — chapitre I</div>
+        <pre data-boot="" class="hero__boot"></pre>
+        <span data-bootcaret="" class="caret caret--boot">▌</span>
+        <div data-title="" class="hero__heading">
+          <div class="hero__eyebrow">Chapitre Premier</div>
+          <h1 class="hero__title">L'Éveil</h1>
+          <div class="hero__rule"></div>
+          <p data-reveal="" class="hero__lead">Il n'y eut d'abord qu'un bruit blanc. Puis une ligne de code. Puis un <span class="hero__name">nom</span> — le tien. Étudiant en <strong class="hero__strong">BUT Informatique</strong>, je tisse des systèmes à partir du silence : des fragments de logique noués jusqu'à ce que le réel se compile.</p>
+          <div data-reveal="" data-delay="120" class="hero__meta">
+            <span><span class="hero__meta-sep">·</span> BUT INFO — 2ᵉ année</span>
+            <span><span class="hero__meta-sep">·</span> France</span>
+            <span><span class="hero__meta-sep">·</span> fils noués : <span class="hero__meta-value">37</span></span>
+            <span><span class="hero__meta-sep">·</span> statut : <span class="hero__meta-value">éveillé</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div data-reveal="" data-delay="200" class="hero__aside">
+        <div class="portrait">
+          <span class="portrait__corner portrait__corner--tl"></span>
+          <span class="portrait__corner portrait__corner--tr"></span>
+          <span class="portrait__corner portrait__corner--bl"></span>
+          <span class="portrait__corner portrait__corner--br"></span>
+          <div class="portrait__frame">
+            <sc-if value="{{ ascii }}" hint-placeholder-val="{{ true }}">
+              <pre class="portrait__ascii">           .:----:.
+        .-=+*######*+=:.
+      :=*#%@@@@@@@@%#*=:
+     -*#%@@@@@@@@@@@@%#*-
+    =#%@@@@@@@@@@@@@@@@%#=
+   :*%@@@@@@@%##%@@@@@@@%*:
+   =#%@@@@@%=.  .=%@@@@@%#=
+   +#%@@@@@:  ()  :@@@@@%#+
+   =#%@@@@@=.    .=@@@@@%#=
+   :*%@@@@@@%#==#%@@@@@@%*:
+    =#%@@@@@@@@@@@@@@@@%#=
+     -*#%@@@@@@@@@@@@%#*-
+      :=*#%@@@@@@%%#*=:
+        .:=+*####*+=:.
+           .:----:.</pre>
+            </sc-if>
+            <sc-if value="{{ notAscii }}" hint-placeholder-val="{{ false }}">
+              <div class="media-slot"><image-slot id="hero-portrait" shape="rect" placeholder="portrait.jpg — glisser une photo" class="media-slot__img"></image-slot></div>
+            </sc-if>
+            <div class="portrait__scan"></div>
+          </div>
+        </div>
+        <div class="portrait__bar">
+          <span class="portrait__file">[ portrait.{{ portraitExt }} ]</span>
+          <button onClick="{{ toggleAscii }}" class="portrait__toggle">⇄ {{ toggleLabel }}</button>
+        </div>
+        <div class="readout">
+          <div class="readout__title">identité — readout</div>
+          <div class="readout__row"><span class="readout__key">désignation</span><span class="readout__leader"></span><span class="readout__value">NotSoul</span></div>
+          <div class="readout__row"><span class="readout__key">cursus</span><span class="readout__leader"></span><span class="readout__value">BUT Info · 2ᵉ</span></div>
+          <div class="readout__row"><span class="readout__key">origine</span><span class="readout__leader"></span><span class="readout__value">France</span></div>
+          <div class="readout__row"><span class="readout__key">fils noués</span><span class="readout__leader"></span><span class="readout__value">37</span></div>
+          <div class="readout__row"><span class="readout__key">statut</span><span class="readout__leader"></span><span class="readout__status"><span class="pulse"></span>éveillé</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ II · LES FRAGMENTS ============ -->
+    <section id="c2" data-chap="c2" class="chapter">
+      <div data-reveal="" class="chapter__kicker">chapitre II</div>
+      <h2 data-reveal="" class="chapter__title">Les Fragments</h2>
+      <p data-reveal="" data-delay="100" class="chapter__lead">Chaque œuvre commence scellée. Ouvre un fragment : le code se tisse sous tes yeux, puis le module s'éveille — image, description, liens.</p>
+      <div class="chapter__rule"></div>
+
+      <div data-fragwrap="" class="weave">
+        <svg data-thread="" viewBox="0 0 56 1000" preserveAspectRatio="none" class="weave__thread">
+          <defs>
+            <linearGradient data-threadgrad="" id="threadgrad" x1="0" y1="0" x2="0" y2="1000" gradientUnits="userSpaceOnUse">
+              <stop offset="0" class="weave__stop"></stop>
+              <stop offset="0.93" class="weave__stop"></stop>
+              <stop offset="1" class="weave__stop weave__stop--fade"></stop>
+            </linearGradient>
+          </defs>
+          <path data-threadline="" d="M28 6 L28 994" fill="none" stroke="url(#threadgrad)" stroke-width="1.5" stroke-linecap="round" vector-effect="non-scaling-stroke" class="weave__line"></path>
+        </svg>
+        <div class="weave__list">
+
+        <!-- fragment 1 -->
+        <div data-build="" data-manual="" class="build">
+          <span data-node="" class="frag__node"></span>
+          <div data-sealed="" class="frag__sealed">
+            <div class="frag__head">
+              <div>
+                <div class="frag__status"><span class="frag__seal"></span>fragment_01 · scellé</div>
+                <h3 class="frag__title frag__title--sealed">Le Gardien des Seuils</h3>
+              </div>
+              <span class="frag__year">2025</span>
+            </div>
+            <p class="frag__teaser">Un module d'accès dort ici, compilé mais scellé — authentification, sessions, silence pour les intrus.</p>
+            <button onClick="{{ openFragment }}" class="frag__compile">◈ compiler le fragment</button>
+          </div>
+          <div data-bwrap="">
+            <div class="build__status"><span class="spinner"></span>weaving fragment_01…</div>
+            <pre data-src="" class="build__src">class Gardien {
+  constructor(seuil) {
+    this.seuil = seuil;
+    this.clefs = new Map();
+  }
+  ouvrir(porteur) {
+    return this.clefs.has(porteur.empreinte);
+  }
+}</pre>
+            <pre data-code="" class="build__code"></pre>
+            <span data-caret="" class="caret">▌</span>
+          </div>
+          <div data-final="">
+            <div class="frag__card">
+              <div class="frag__media">
+                <sc-if value="{{ ascii }}" hint-placeholder-val="{{ true }}">
+                  <pre class="frag__ascii">╔═══════════╗
+║ ░░░░░░░░░ ║
+║ ░╔═════╗░ ║
+║ ░║  ◉  ║░ ║
+║ ░║  ║  ║░ ║
+║ ░╚══╩══╝░ ║
+║ ░░░░░░░░░ ║
+╚═════╩═════╝</pre>
+                </sc-if>
+                <sc-if value="{{ notAscii }}" hint-placeholder-val="{{ false }}">
+                  <div class="media-slot"><image-slot id="frag-1" shape="rect" placeholder="capture" class="media-slot__img"></image-slot></div>
+                </sc-if>
+              </div>
+              <div>
+                <div class="frag__head">
+                  <h3 class="frag__title">Le Gardien des Seuils</h3>
+                  <span class="frag__year">2025</span>
+                </div>
+                <p class="frag__desc">Un système d'accès qui ne reconnaît que les empreintes vraies. Il garde les portes là où d'autres laissent passer l'ombre — authentification, sessions, et le silence pour les intrus.</p>
+                <div class="tags">
+                  <span class="tag">Node.js</span>
+                  <span class="tag">JWT</span>
+                  <span class="tag">PostgreSQL</span>
+                </div>
+                <div class="frag__footer">
+                  <a href="#c2" class="frag__link frag__link--primary">démo ↗</a>
+                  <a href="#c2" class="frag__link frag__link--muted">code ↗</a>
+                  <span class="badge badge--end"><span class="pulse"></span>module éveillé</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- fragment 2 -->
+        <div data-build="" data-manual="" class="build">
+          <span data-node="" class="frag__node"></span>
+          <div data-sealed="" class="frag__sealed">
+            <div class="frag__head">
+              <div>
+                <div class="frag__status"><span class="frag__seal"></span>fragment_02 · scellé</div>
+                <h3 class="frag__title frag__title--sealed">L'Atlas des Murmures</h3>
+              </div>
+              <span class="frag__year">2024</span>
+            </div>
+            <p class="frag__teaser">Une carte vivante des données dispersées attend d'être tissée — flux écoutés, regroupés, dessinés.</p>
+            <button onClick="{{ openFragment }}" class="frag__compile">◈ compiler le fragment</button>
+          </div>
+          <div data-bwrap="">
+            <div class="build__status"><span class="spinner"></span>weaving fragment_02…</div>
+            <pre data-src="" class="build__src">def cartographier(murmures):
+    atlas = {}
+    for m in murmures:
+        atlas.setdefault(m.region, [])
+        atlas[m.region].append(m.echo)
+    return tracer(atlas)</pre>
+            <pre data-code="" class="build__code"></pre>
+            <span data-caret="" class="caret">▌</span>
+          </div>
+          <div data-final="">
+            <div class="frag__card">
+              <div class="frag__media">
+                <sc-if value="{{ ascii }}" hint-placeholder-val="{{ true }}">
+                  <pre class="frag__ascii">◦───◦────◦──◦
+│  ╱╲  │  ╱ │
+◦─◦  ◦─◦─◦  ◦
+│ ╲╱  │   ╱
+◦──◉──◦──◦
+│  ╱╲  │  ╲
+◦─◦  ◦─◦───◦</pre>
+                </sc-if>
+                <sc-if value="{{ notAscii }}" hint-placeholder-val="{{ false }}">
+                  <div class="media-slot"><image-slot id="frag-2" shape="rect" placeholder="capture" class="media-slot__img"></image-slot></div>
+                </sc-if>
+              </div>
+              <div>
+                <div class="frag__head">
+                  <h3 class="frag__title">L'Atlas des Murmures</h3>
+                  <span class="frag__year">2024</span>
+                </div>
+                <p class="frag__desc">Une carte vivante des données dispersées. Elle écoute les flux, les regroupe par territoire, et dessine ce que personne n'avait su voir — un atlas qui se redessine à chaque écho reçu.</p>
+                <div class="tags">
+                  <span class="tag">Python</span>
+                  <span class="tag">D3.js</span>
+                  <span class="tag">FastAPI</span>
+                </div>
+                <div class="frag__footer">
+                  <a href="#c2" class="frag__link frag__link--primary">démo ↗</a>
+                  <a href="#c2" class="frag__link frag__link--muted">code ↗</a>
+                  <span class="badge badge--end"><span class="pulse"></span>module éveillé</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- fragment 3 -->
+        <div data-build="" data-manual="" class="build">
+          <span data-node="" class="frag__node"></span>
+          <div data-sealed="" class="frag__sealed">
+            <div class="frag__head">
+              <div>
+                <div class="frag__status"><span class="frag__seal"></span>fragment_03 · scellé</div>
+                <h3 class="frag__title frag__title--sealed">La Forge Silencieuse</h3>
+              </div>
+              <span class="frag__year">2024</span>
+            </div>
+            <p class="frag__teaser">Un outil qui compile sans bruit sommeille — glyphes épars en entrée, binaire net en sortie.</p>
+            <button onClick="{{ openFragment }}" class="frag__compile">◈ compiler le fragment</button>
+          </div>
+          <div data-bwrap="">
+            <div class="build__status"><span class="spinner"></span>weaving fragment_03…</div>
+            <pre data-src="" class="build__src">$ forge build --silent
+  ↳ parsing glyphs ........ ok
+  ↳ linking runes ......... ok
+  ↳ emit ./forge.bin ...... ok
+done in 0.42s</pre>
+            <pre data-code="" class="build__code"></pre>
+            <span data-caret="" class="caret">▌</span>
+          </div>
+          <div data-final="">
+            <div class="frag__card">
+              <div class="frag__media">
+                <sc-if value="{{ ascii }}" hint-placeholder-val="{{ true }}">
+                  <pre class="frag__ascii">    ▄███▄
+  ▄███████▄
+  ▀▀▀███▀▀▀
+     ███
+   ▄▄███▄▄
+  █████████
+  ▀▀▀▀▀▀▀▀▀</pre>
+                </sc-if>
+                <sc-if value="{{ notAscii }}" hint-placeholder-val="{{ false }}">
+                  <div class="media-slot"><image-slot id="frag-3" shape="rect" placeholder="capture" class="media-slot__img"></image-slot></div>
+                </sc-if>
+              </div>
+              <div>
+                <div class="frag__head">
+                  <h3 class="frag__title">La Forge Silencieuse</h3>
+                  <span class="frag__year">2024</span>
+                </div>
+                <p class="frag__desc">Un outil en ligne de commande qui compile sans bruit. On lui confie des glyphes épars, il rend un binaire net — la discrétion faite machine, pensée pour ceux qui n'aiment pas le tapage.</p>
+                <div class="tags">
+                  <span class="tag">Rust</span>
+                  <span class="tag">CLI</span>
+                  <span class="tag">WASM</span>
+                </div>
+                <div class="frag__footer">
+                  <a href="#c2" class="frag__link frag__link--primary">démo ↗</a>
+                  <a href="#c2" class="frag__link frag__link--muted">code ↗</a>
+                  <span class="badge badge--end"><span class="pulse"></span>module éveillé</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ III · L'ARSENAL ============ -->
+    <section id="c3" data-chap="c3" class="chapter">
+      <div data-reveal="" class="chapter__kicker">chapitre III</div>
+      <h2 data-reveal="" class="chapter__title">L'Arsenal</h2>
+      <p data-reveal="" data-delay="100" class="chapter__lead">Les outils d'un tisseur ne sont pas des armes — ce sont des langages. L'index se résout écheveau après écheveau, fil après fil.</p>
+      <div class="chapter__rule"></div>
+
+      <div data-arsenal="" data-reveal="" class="arsenal">
+        <div class="arsenal__bar">
+          <span>~/NotSoul/arsenal — index</span>
+          <span data-arsum="" class="arsenal__sum">3 écheveaux · 10 fils</span>
+        </div>
+        <div class="arsenal__boot-wrap">
+          <pre data-arboot="" class="arsenal__boot"></pre>
+        </div>
+
+        <div data-arow="" class="arsenal__row">
+          <div>
+            <div class="arsenal__index">01</div>
+            <div class="arsenal__name">Langages</div>
+          </div>
+          <div class="arsenal__fils">
+            <div data-fil="" class="fil"><span class="fil__name">python</span><span data-leader="" class="fil__leader"></span><span data-lvl="" class="fil__level">expert</span></div>
+            <div data-fil="" class="fil"><span class="fil__name">javascript</span><span data-leader="" class="fil__leader"></span><span data-lvl="" class="fil__level">avancé</span></div>
+            <div data-fil="" class="fil"><span class="fil__name">c</span><span data-leader="" class="fil__leader"></span><span data-lvl="" class="fil__level">solide</span></div>
+            <div data-fil="" class="fil"><span class="fil__name">rust</span><span data-leader="" class="fil__leader"></span><span data-lvl="" class="fil__level">en apprentissage</span></div>
+          </div>
+          <div>
+            <div class="arsenal__aspects">aspects noués</div>
+            <div class="tags tags--tight">
+              <span class="tag">algorithmes</span>
+              <span class="tag">structures de données</span>
+              <span class="tag">systèmes</span>
+            </div>
+          </div>
+        </div>
+
+        <div data-arow="" class="arsenal__row">
+          <div>
+            <div class="arsenal__index">02</div>
+            <div class="arsenal__name">Web &amp; Données</div>
+          </div>
+          <div class="arsenal__fils">
+            <div data-fil="" class="fil"><span class="fil__name">react</span><span data-leader="" class="fil__leader"></span><span data-lvl="" class="fil__level">avancé</span></div>
+            <div data-fil="" class="fil"><span class="fil__name">node</span><span data-leader="" class="fil__leader"></span><span data-lvl="" class="fil__level">avancé</span></div>
+            <div data-fil="" class="fil"><span class="fil__name">sql</span><span data-leader="" class="fil__leader"></span><span data-lvl="" class="fil__level">solide</span></div>
+          </div>
+          <div>
+            <div class="arsenal__aspects">aspects noués</div>
+            <div class="tags tags--tight">
+              <span class="tag">API</span>
+              <span class="tag">bases de données</span>
+              <span class="tag">interfaces</span>
+            </div>
+          </div>
+        </div>
+
+        <div data-arow="" class="arsenal__row">
+          <div>
+            <div class="arsenal__index">03</div>
+            <div class="arsenal__name">Outils</div>
+          </div>
+          <div class="arsenal__fils">
+            <div data-fil="" class="fil"><span class="fil__name">git</span><span data-leader="" class="fil__leader"></span><span data-lvl="" class="fil__level">réflexe</span></div>
+            <div data-fil="" class="fil"><span class="fil__name">linux</span><span data-leader="" class="fil__leader"></span><span data-lvl="" class="fil__level">quotidien</span></div>
+            <div data-fil="" class="fil"><span class="fil__name">docker</span><span data-leader="" class="fil__leader"></span><span data-lvl="" class="fil__level">en apprentissage</span></div>
+          </div>
+          <div>
+            <div class="arsenal__aspects">aspects noués</div>
+            <div class="tags tags--tight">
+              <span class="tag">déploiement</span>
+              <span class="tag">environnements</span>
+              <span class="tag">collaboration</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="arsenal__foot">
+          <span class="pulse--lg"></span>
+          <p class="arsenal__motto">Trois écheveaux, un seul métier à tisser : chaque langage sert une structure, chaque outil sert un geste — rien n'est isolé.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ IV · LES ÉCHOS ============ -->
+    <section id="c4" data-chap="c4" class="chapter">
+      <div data-reveal="" class="chapter__kicker">chapitre IV</div>
+      <h2 data-reveal="" class="chapter__title">Les Échos</h2>
+      <p data-reveal="" data-delay="100" class="chapter__lead">Certains gestes résonnent plus loin que d'autres. Ce sont les échos — les moments où le code a rencontré le monde.</p>
+      <div class="chapter__rule"></div>
+
+      <div class="echoes">
+        <div data-reveal="" class="echo">
+          <span class="echo__dot"></span>
+          <div class="echo__year">2025</div>
+          <div>
+            <h3 class="echo__title">Premier Fil Noué</h3>
+            <p class="echo__text">Lauréat d'un hackathon de 48 heures — un outil né dans la nuit, compilé à l'aube, applaudi avant le café. Le premier signe que le silence pouvait porter loin.</p>
+          </div>
+        </div>
+        <div data-reveal="" data-delay="100" class="echo">
+          <span class="echo__dot"></span>
+          <div class="echo__year">2024</div>
+          <div>
+            <h3 class="echo__title">La Voix Open-Source</h3>
+            <p class="echo__text">Contributeur sur un projet libre suivi par des milliers — quelques lignes glissées dans un dépôt commun, et le code continue de résonner sans porter mon nom.</p>
+          </div>
+        </div>
+        <div data-reveal="" data-delay="180" class="echo">
+          <span class="echo__dot"></span>
+          <div class="echo__year">2023</div>
+          <div>
+            <h3 class="echo__title">L'Apprenti Tisseur</h3>
+            <p class="echo__text">Entrée au BUT Informatique. Le premier fil tendu entre l'intuition et la méthode — là où la curiosité est devenue discipline.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ V · LE LIEN ============ -->
+    <section id="c5" data-chap="c5" class="chapter chapter--link">
+      <div data-reveal="" class="chapter__kicker">épilogue — chapitre V</div>
+      <h2 data-reveal="" class="chapter__title chapter__title--lg">Le Lien</h2>
+      <p data-reveal="" data-delay="100" class="chapter__lead">Aucune chronique ne se ferme seule. Il reste à tendre le dernier fil — celui qui sort de la page et rejoint quelqu'un. Toi, peut-être.</p>
+      <div class="chapter__rule"></div>
+
+      <div data-build="" class="build build--link">
+        <div data-bwrap="">
+          <div class="build__status"><span class="spinner"></span>opening channels…</div>
+          <pre data-src="" class="build__src">$ ./connect.sh
+  ↳ resolving channels ...... ok
+  ↳ opening github .......... ok
+  ↳ opening linkedin ........ ok
+  ↳ link established</pre>
+          <pre data-code="" class="build__code"></pre>
+          <span data-caret="" class="caret">▌</span>
+        </div>
+        <div data-final="">
+          <div class="contacts">
+            <a href="#c5" class="contact">
+              <span class="contact__kicker">01 — dépôt</span>
+              <span class="contact__name">GitHub</span>
+              <span class="contact__handle">github.com/NotSoul</span>
+            </a>
+            <a href="#c5" class="contact">
+              <span class="contact__kicker">02 — réseau</span>
+              <span class="contact__name">LinkedIn</span>
+              <span class="contact__handle">in/NotSoul</span>
+            </a>
+            <a href="#c5" class="contact">
+              <span class="contact__kicker">03 — voix</span>
+              <span class="contact__name">Email</span>
+              <span class="contact__handle">notsoul@chronicle.dev</span>
+            </a>
+          </div>
+          <div class="link-footer">
+            <span class="badge badge--link"><span class="pulse"></span>lien établi</span>
+          </div>
+        </div>
+      </div>
+
+      <div data-reveal="" class="finale">
+        <div class="finale__palette">
+          <span class="finale__swatch finale__swatch--c1"></span>
+          <span class="finale__swatch finale__swatch--c2"></span>
+          <span class="finale__swatch finale__swatch--c3"></span>
+          <span class="finale__swatch finale__swatch--c4"></span>
+          <span class="finale__swatch finale__swatch--c5"></span>
+        </div>
+        <span class="finale__caption">chronique complète — palette restaurée</span>
+      </div>
+      <div class="colophon">— fin de la chronique oubliée du code du tisseur —</div>
+    </section>
+
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  readCookie(k){
+    const m = document.cookie.match(new RegExp('(?:^|; )' + k + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+  writeCookie(k, v){ document.cookie = k + '=' + v + ';path=/;max-age=31536000'; }
+
+  state = { ascii: this.readCookie('weaver_ascii') !== '0' };
+
+  setRoot = (el) => { this.root = el; };
+
+  toggleAscii = () => {
+    this.setState(s => {
+      const n = !s.ascii;
+      this.writeCookie('weaver_ascii', n ? '1' : '0');
+      return { ascii: n };
+    });
+  };
+
+  openFragment = (e) => {
+    const card = e.target.closest('[data-build]');
+    if (card) this.build(card);
+  };
+
+  type(el, text, speed){
+    return new Promise(res => {
+      let i = 0;
+      const tick = () => {
+        el.textContent = text.slice(0, i++);
+        if (i <= text.length) setTimeout(tick, speed);
+        else res();
+      };
+      tick();
+    });
+  }
+
+  awaken(id){
+    if (!this.awoken) this.awoken = {};
+    if (this.awoken[id]) return;
+    this.awoken[id] = true;
+    const color = this.colors[id];
+    const sec = this.root.querySelector('[data-chap="' + id + '"]');
+    if (sec) sec.style.setProperty('--acc', color);
+    const rail = this.root.querySelector('[data-rail="' + id + '"]');
+    if (rail) rail.style.color = color;
+    const pal = this.root.querySelector('[data-pal="' + id + '"]');
+    if (pal){ pal.style.background = color; pal.style.boxShadow = '0 0 9px ' + color; }
+  }
+
+  setActive(id){
+    if (this.activeId === id) return;
+    this.activeId = id;
+    this.root.querySelectorAll('[data-rail]').forEach(r => {
+      r.style.textShadow = (r.getAttribute('data-rail') === id) ? '0 0 12px currentColor' : 'none';
+    });
+  }
+
+  growThread(node){
+    const dot = node.querySelector('[data-node]');
+    if (!dot || !this.threadEl) return;
+    const wrap = this.root.querySelector('[data-fragwrap]');
+    if (!wrap) return;
+    const y = node.offsetTop + dot.offsetTop + 6;
+    let frac = Math.min(1, y / wrap.offsetHeight);
+    const cards = wrap.querySelectorAll('[data-build]');
+    if (node === cards[cards.length - 1]) frac = 1;
+    this.threadFrac = Math.max(this.threadFrac || 0, frac);
+    this.threadEl.style.strokeDashoffset = this.threadLen * (1 - this.threadFrac);
+    const c = this.colors[this.activeId] || '#4fa9ff';
+    dot.style.background = c; dot.style.borderColor = c; dot.style.boxShadow = '0 0 10px ' + c;
+  }
+
+  async build(node){
+    if (node.dataset.built) return;
+    node.dataset.built = '1';
+    const sealed = node.querySelector('[data-sealed]');
+    const src = node.querySelector('[data-src]');
+    const code = node.querySelector('[data-code]');
+    const caret = node.querySelector('[data-caret]');
+    const wrap = node.querySelector('[data-bwrap]');
+    const fin = node.querySelector('[data-final]');
+    if (sealed){
+      sealed.style.transition = 'opacity .3s ease';
+      sealed.style.opacity = '0';
+      await new Promise(r => setTimeout(r, 300));
+      sealed.style.display = 'none';
+    }
+    if (wrap){ wrap.style.display = ''; wrap.style.opacity = '1'; }
+    await this.type(code, (src.textContent || '').trim(), 13);
+    this.growThread(node);
+    if (caret) caret.style.opacity = '0';
+    await new Promise(r => setTimeout(r, 340));
+    if (wrap){ wrap.style.transition = 'opacity .35s ease'; wrap.style.opacity = '0'; }
+    await new Promise(r => setTimeout(r, 360));
+    if (wrap) wrap.style.display = 'none';
+    if (fin){ fin.style.display = ''; void fin.offsetHeight; fin.style.transition = 'opacity .8s ease, transform .8s ease'; fin.style.opacity = '1'; fin.style.transform = 'none'; }
+  }
+
+  async buildArsenal(node){
+    if (node.dataset.built) return;
+    node.dataset.built = '1';
+    const boot = node.querySelector('[data-arboot]');
+    if (boot) await this.type(boot, '$ tree ~/NotSoul/arsenal --depth 1\n  \u21b3 résolution des écheveaux ......... ok', 14);
+    await new Promise(r => setTimeout(r, 160));
+    const rows = [...node.querySelectorAll('[data-arow]')];
+    for (const row of rows){
+      row.style.opacity = '1';
+      row.style.transform = 'none';
+      const fils = [...row.querySelectorAll('[data-fil]')];
+      for (const f of fils){
+        const leader = f.querySelector('[data-leader]');
+        const lvl = f.querySelector('[data-lvl]');
+        if (leader) leader.style.transform = 'translateY(-3px) scaleX(1)';
+        if (lvl) lvl.style.opacity = '1';
+        await new Promise(r => setTimeout(r, 95));
+      }
+      await new Promise(r => setTimeout(r, 150));
+    }
+    const sum = node.querySelector('[data-arsum]');
+    if (sum) sum.style.opacity = '1';
+  }
+
+  componentDidMount(){
+    this.colors = { c1:'#4fa9ff', c2:'#6fe0d0', c3:'#a98bff', c4:'#ff5d6c', c5:'#f5b65a' };
+    const root = this.root;
+    if (!root) return;
+
+    // light chapter I immediately (no wait for boot)
+    this.setActive('c1');
+    this.awaken('c1');
+
+    // --- reveal-on-scroll ---
+    const rev = [...root.querySelectorAll('[data-reveal]')];
+    rev.forEach(el => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(18px)';
+      const d = (parseInt(el.getAttribute('data-delay')) || 0) / 1000;
+      el.style.transition = 'opacity .8s ease ' + d + 's, transform .8s ease ' + d + 's';
+    });
+    const ro = new IntersectionObserver((es) => {
+      es.forEach(e => {
+        if (e.isIntersecting){ e.target.style.opacity = '1'; e.target.style.transform = 'none'; ro.unobserve(e.target); }
+      });
+    }, { threshold: 0.15 });
+    rev.forEach(el => ro.observe(el));
+
+    // --- build modules ---
+    const builds = [...root.querySelectorAll('[data-build]')];
+    builds.forEach(node => {
+      const fin = node.querySelector('[data-final]');
+      if (fin){ fin.style.opacity = '0'; fin.style.transform = 'translateY(10px)'; fin.style.display = 'none'; }
+      if (node.hasAttribute('data-manual')){
+        const wrap = node.querySelector('[data-bwrap]');
+        if (wrap) wrap.style.display = 'none';
+      }
+    });
+    const bo = new IntersectionObserver((es) => {
+      es.forEach(e => {
+        if (e.isIntersecting){
+          if (!e.target.hasAttribute('data-manual')) this.build(e.target);
+          bo.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    builds.forEach(n => bo.observe(n));
+
+    // --- weaving thread ---
+    const thread = root.querySelector('[data-threadline]');
+    if (thread){
+      const L = thread.getTotalLength();
+      thread.style.strokeDasharray = L;
+      thread.style.strokeDashoffset = L;
+      thread.style.transition = 'stroke-dashoffset 1.1s cubic-bezier(.4,0,.2,1)';
+      this.threadEl = thread; this.threadLen = L;
+    }
+
+    // --- arsenal construction ---
+    const ars = root.querySelector('[data-arsenal]');
+    if (ars){
+      ars.querySelectorAll('[data-arow]').forEach(r => {
+        r.style.opacity = '0';
+        r.style.transform = 'translateY(14px)';
+        r.style.transition = 'opacity .6s ease, transform .6s ease';
+      });
+      ars.querySelectorAll('[data-leader]').forEach(l => {
+        l.style.transformOrigin = 'left';
+        l.style.transform = 'translateY(-3px) scaleX(0)';
+        l.style.transition = 'transform .55s cubic-bezier(.4,0,.2,1)';
+      });
+      ars.querySelectorAll('[data-lvl]').forEach(v => {
+        v.style.opacity = '0';
+        v.style.transition = 'opacity .5s ease';
+      });
+      const sum = ars.querySelector('[data-arsum]');
+      if (sum){ sum.style.opacity = '0'; sum.style.transition = 'opacity .8s ease'; }
+      const arobs = new IntersectionObserver((es) => {
+        es.forEach(e => { if (e.isIntersecting){ this.buildArsenal(ars); arobs.unobserve(e.target); } });
+      }, { threshold: 0.25 });
+      arobs.observe(ars);
+    }
+
+    // --- chapter chromatic + active rail ---
+    this.ratios = {};
+    const secs = [...root.querySelectorAll('[data-chap]')];
+    const co = new IntersectionObserver((es) => {
+      es.forEach(e => {
+        const id = e.target.id;
+        this.ratios[id] = e.isIntersecting ? e.intersectionRatio : 0;
+        if (e.isIntersecting && e.intersectionRatio > 0.25) this.awaken(id);
+      });
+      let best = null, bestR = 0;
+      Object.keys(this.ratios).forEach(k => { if (this.ratios[k] > bestR){ bestR = this.ratios[k]; best = k; } });
+      if (best && bestR > 0.2) this.setActive(best);
+    }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
+    secs.forEach(s => co.observe(s));
+
+    // --- boot sequence (cosmetic; chapter already lit) ---
+    const boot = root.querySelector('[data-boot]');
+    const bootText = "NotSoul@chronicle:~$ ./awaken.sh\n\u00bb init weaver.core ........ ok\n\u00bb load chronicle.dat ..... ok\n\u00bb rebuild memory ......... 100%\n\u00bb mount consciousness .... [ok]\n\u00bb first light acquired";
+    const bootCaret = root.querySelector('[data-bootcaret]');
+    if (boot){
+      this.type(boot, bootText, 16).then(() => {
+        if (bootCaret){ bootCaret.style.transition = 'opacity .6s ease'; bootCaret.style.opacity = '0'; }
+      });
+    }
+  }
+
+  renderVals(){
+    return {
+      setRoot: this.setRoot,
+      ascii: this.state.ascii,
+      notAscii: !this.state.ascii,
+      toggleAscii: this.toggleAscii,
+      openFragment: this.openFragment,
+      toggleLabel: this.state.ascii ? 'voir la photo' : 'voir en ascii',
+      portraitExt: this.state.ascii ? 'ascii' : 'jpg'
+    };
+  }
+}
+</script>
+</body>
+</html>

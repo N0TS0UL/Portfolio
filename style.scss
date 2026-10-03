@@ -34,7 +34,7 @@ $text-main:  #c2c8ce; // chapô, valeurs
 $text-prose: #9aa1a8; // paragraphes
 $text-code:  #8b929a; // code, ascii, tags
 $text-label: #5b626b; // libellés UI, métadonnées
-$text-off:   #3a4047; // éléments éteints, séparateurs
+$text-bg:   #3a4047; // éléments éteints, séparateurs
 
 // Bordures
 $border-soft:   rgba(120, 150, 190, .1);  // séparateurs internes
@@ -88,7 +88,7 @@ body {
         font-style: italic;
         font-weight: normal;
         font-family: $font-prose;
-        margin: 5em auto 0.05em auto;
+        margin: auto auto 0.05em auto;
     }
     h1 + hr {
         max-width: 200px;
@@ -97,6 +97,41 @@ body {
         border-top: 2px solid $border;
     }
 }
+
+.card {
+  position: relative;
+  padding: 2rem;
+  --c: #fff;      // couleur bordure
+  --w: 2px;       // épaisseur
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: var(--w);
+  border-radius: inherit;
+  pointer-events: none;
+
+  // 2 dégradés : haut-gauche et bas-droite
+  background:
+    linear-gradient(135deg, var(--c), transparent 15%), // Changer le poucentage agit comme si ça grandissait
+    linear-gradient(315deg, var(--c), transparent 15%); // Changer le poucentage agit comme si ça grandissait
+
+  // ne garde que l'anneau (bordure)
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+}
+
+.code {
+    &.bg {
+        color: $text-bg;
+    }
+}
+
 
 // ===== Ids =====
 @for $i from 1 through list.length($chapters) {
@@ -107,5 +142,23 @@ body {
         hr {
             border-color: #{list.nth($chapters, $i)};
         }
+        .card {
+            --c: #{list.nth($chapters, $i)};
+        }
+    }
+}
+
+#awaken-title {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    position: absolute;
+    justify-items: center;
+    align-items: center;
+
+    h1 {
+        margin: 0;
+        white-space: nowrap;
     }
 }

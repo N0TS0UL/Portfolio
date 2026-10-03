@@ -20,7 +20,7 @@ body {
   font-style: italic;
   font-weight: normal;
   font-family: "Cormorant Garamond", serif;
-  margin: 5em auto 0.05em auto;
+  margin: auto auto 0.05em auto;
 }
 .chapter h1 + hr {
   max-width: 200px;
@@ -29,11 +29,38 @@ body {
   border-top: 2px solid rgba(120, 150, 190, 0.16);
 }
 
+.card {
+  position: relative;
+  padding: 2rem;
+  --c: #fff;
+  --w: 2px;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: var(--w);
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(135deg, var(--c), transparent 15%), linear-gradient(315deg, var(--c), transparent 15%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.code.bg {
+  color: #3a4047;
+}
+
 #chapter1 h1 {
   color: #4fa9ff;
 }
 #chapter1 hr {
   border-color: #4fa9ff;
+}
+#chapter1 .card {
+  --c: #4fa9ff;
 }
 
 #chapter2 h1 {
@@ -42,12 +69,18 @@ body {
 #chapter2 hr {
   border-color: #6fe0d0;
 }
+#chapter2 .card {
+  --c: #6fe0d0;
+}
 
 #chapter3 h1 {
   color: #a98bff;
 }
 #chapter3 hr {
   border-color: #a98bff;
+}
+#chapter3 .card {
+  --c: #a98bff;
 }
 
 #chapter4 h1 {
@@ -56,10 +89,29 @@ body {
 #chapter4 hr {
   border-color: #ff5d6c;
 }
+#chapter4 .card {
+  --c: #ff5d6c;
+}
 
 #chapter5 h1 {
   color: #f5b65a;
 }
 #chapter5 hr {
   border-color: #f5b65a;
+}
+#chapter5 .card {
+  --c: #f5b65a;
+}
+
+#awaken-title {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  position: absolute;
+  justify-items: center;
+  align-items: center;
+}
+#awaken-title h1 {
+  margin: 0;
+  white-space: nowrap;
 }/*# sourceMappingURL=style.css.map */

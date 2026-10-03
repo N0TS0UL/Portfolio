@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics="">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&amp;family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&amp;family=JetBrains+Mono:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:#040507;color:#aab1b8;font-family:'JetBrains Mono',ui-monospace,monospace;-webkit-font-smoothing:antialiased}
+  a{color:var(--acc,#7fc0ff);text-decoration:none}
+  a:hover{color:#dfe4e9}
+  ::selection{background:rgba(79,169,255,.3);color:#fff}
+  ::-webkit-scrollbar{width:9px}
+  ::-webkit-scrollbar-track{background:#06080c}
+  ::-webkit-scrollbar-thumb{background:#1b2129}
+  @keyframes blink{0%,100%{opacity:.85}50%{opacity:.3}}
+  @keyframes flick{0%,100%{opacity:.5}50%{opacity:.36}92%{opacity:.58}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes drift{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+</style>
+<script src="./image-slot.js"></script>
+</helmet>
+
+<div ref="{{ setRoot }}" style="position:relative;min-height:100vh;background:#040507;overflow-x:hidden">
+
+  <!-- ============ FIXED CHAPTER RAIL ============ -->
+  <nav style="position:fixed;top:0;left:0;width:84px;height:100vh;z-index:40;display:flex;flex-direction:column;align-items:center;padding:22px 0;background:linear-gradient(90deg,rgba(6,8,12,.94),rgba(6,8,12,.5));border-right:1px solid rgba(120,150,190,.12)">
+    <a href="#top" style="font-family:'Cinzel',serif;font-size:13px;letter-spacing:.05em;color:#6b7178;text-decoration:none;text-align:center;line-height:1.1">N<br>C</a>
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:30px">
+      <a data-rail="c1" href="#c1" style="display:flex;flex-direction:column;align-items:center;gap:8px;text-decoration:none;color:#3a4047;transition:color .8s ease,text-shadow .4s ease">
+        <span style="font-family:'Cinzel',serif;font-size:21px;line-height:1">I</span>
+        <span style="writing-mode:vertical-rl;font-size:8.5px;letter-spacing:.32em;text-transform:uppercase">L'Éveil</span>
+      </a>
+      <a data-rail="c2" href="#c2" style="display:flex;flex-direction:column;align-items:center;gap:8px;text-decoration:none;color:#3a4047;transition:color .8s ease,text-shadow .4s ease">
+        <span style="font-family:'Cinzel',serif;font-size:21px;line-height:1">II</span>
+        <span style="writing-mode:vertical-rl;font-size:8.5px;letter-spacing:.32em;text-transform:uppercase">Fragments</span>
+      </a>
+      <a data-rail="c3" href="#c3" style="display:flex;flex-direction:column;align-items:center;gap:8px;text-decoration:none;color:#3a4047;transition:color .8s ease,text-shadow .4s ease">
+        <span style="font-family:'Cinzel',serif;font-size:21px;line-height:1">III</span>
+        <span style="writing-mode:vertical-rl;font-size:8.5px;letter-spacing:.32em;text-transform:uppercase">Arsenal</span>
+      </a>
+      <a data-rail="c4" href="#c4" style="display:flex;flex-direction:column;align-items:center;gap:8px;text-decoration:none;color:#3a4047;transition:color .8s ease,text-shadow .4s ease">
+        <span style="font-family:'Cinzel',serif;font-size:21px;line-height:1">IV</span>
+        <span style="writing-mode:vertical-rl;font-size:8.5px;letter-spacing:.32em;text-transform:uppercase">Échos</span>
+      </a>
+      <a data-rail="c5" href="#c5" style="display:flex;flex-direction:column;align-items:center;gap:8px;text-decoration:none;color:#3a4047;transition:color .8s ease,text-shadow .4s ease">
+        <span style="font-family:'Cinzel',serif;font-size:21px;line-height:1">V</span>
+        <span style="writing-mode:vertical-rl;font-size:8.5px;letter-spacing:.32em;text-transform:uppercase">Le Lien</span>
+      </a>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;align-items:center">
+      <div data-pal="c1" style="width:9px;height:9px;border-radius:50%;background:#23282f;transition:background .9s ease,box-shadow .9s ease"></div>
+      <div data-pal="c2" style="width:9px;height:9px;border-radius:50%;background:#23282f;transition:background .9s ease,box-shadow .9s ease"></div>
+      <div data-pal="c3" style="width:9px;height:9px;border-radius:50%;background:#23282f;transition:background .9s ease,box-shadow .9s ease"></div>
+      <div data-pal="c4" style="width:9px;height:9px;border-radius:50%;background:#23282f;transition:background .9s ease,box-shadow .9s ease"></div>
+      <div data-pal="c5" style="width:9px;height:9px;border-radius:50%;background:#23282f;transition:background .9s ease,box-shadow .9s ease"></div>
+    </div>
+  </nav>
+
+  <!-- ============ GLOBAL OVERLAYS ============ -->
+  <div style="position:fixed;inset:0;pointer-events:none;z-index:30;background:repeating-linear-gradient(0deg,rgba(150,190,240,.04) 0 1px,transparent 1px 3px);mix-blend-mode:overlay;animation:flick 5s steps(10) infinite"></div>
+  <div style="position:fixed;inset:0;pointer-events:none;z-index:30;background:radial-gradient(125% 80% at 50% 30%,transparent 60%,rgba(0,0,0,.5) 100%)"></div>
+
+  <!-- ============ MAIN ============ -->
+  <main id="top" style="margin-left:84px;position:relative;z-index:2">
+
+    <!-- ============ I · L'ÉVEIL ============ -->
+    <section id="c1" data-chap="c1" style="position:relative;min-height:100vh;display:flex;flex-wrap:wrap;align-items:center;gap:48px 64px;padding:80px 72px">
+      <svg viewBox="0 0 600 600" preserveAspectRatio="none" style="position:absolute;right:0;top:0;width:60%;height:100%;opacity:.5;pointer-events:none">
+        <g fill="none" stroke="var(--acc,#4fa9ff)" stroke-width="0.5" opacity="0.18">
+          <path d="M600 40 Q 380 180 600 320"></path>
+          <path d="M600 120 Q 340 300 600 460"></path>
+          <path d="M600 220 Q 300 380 600 560"></path>
+          <path d="M600 -20 Q 420 120 600 200"></path>
+        </g>
+      </svg>
+
+      <div style="flex:1;max-width:560px;position:relative;z-index:2">
+        <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#454c54;margin-bottom:18px">chronicle.exe — chapitre I</div>
+        <pre data-boot="" style="margin:0;font-size:13px;line-height:2;color:#5b626b;min-height:176px;white-space:pre-wrap"></pre>
+        <span data-bootcaret="" style="font-size:13px;color:var(--acc,#4fa9ff);animation:blink 1.6s ease-in-out infinite">▌</span>
+        <div data-title="" style="margin-top:18px">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:12px;letter-spacing:.42em;color:#5b626b;text-transform:uppercase;margin-bottom:4px">Chapitre Premier</div>
+          <h1 style="margin:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:500;font-size:98px;line-height:.86;color:#eaeef2">L'Éveil</h1>
+          <div style="height:1px;background:linear-gradient(90deg,var(--acc,#4fa9ff),transparent);width:200px;margin:24px 0 18px;transition:background 1s ease"></div>
+          <p data-reveal="" style="font-family:'Cormorant Garamond',serif;font-size:22px;line-height:1.55;color:#c2c8ce;margin:0 0 14px;max-width:520px;text-wrap:pretty">Il n'y eut d'abord qu'un bruit blanc. Puis une ligne de code. Puis un <span style="color:var(--acc,#aab1b8);font-style:italic;text-shadow:0 0 12px currentColor;transition:color 1s ease">nom</span> — le tien. Étudiant en <strong style="font-weight:600;color:#dfe4e9">BUT Informatique</strong>, je tisse des systèmes à partir du silence : des fragments de logique noués jusqu'à ce que le réel se compile.</p>
+          <div data-reveal="" data-delay="120" style="display:flex;flex-wrap:wrap;gap:26px;margin-top:26px;font-size:11px;letter-spacing:.06em;color:#6b7178">
+            <span><span style="color:#3a4047">·</span> BUT INFO — 2ᵉ année</span>
+            <span><span style="color:#3a4047">·</span> France</span>
+            <span><span style="color:#3a4047">·</span> fils noués : <span style="color:var(--acc,#aab1b8);transition:color 1s ease">37</span></span>
+            <span><span style="color:#3a4047">·</span> statut : <span style="color:var(--acc,#aab1b8);transition:color 1s ease">éveillé</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div data-reveal="" data-delay="200" style="flex:none;width:400px;position:relative;z-index:2;display:flex;flex-direction:column;gap:14px">
+        <div style="position:relative;border:1px solid rgba(120,165,215,.24);background:#06090e;padding:18px;box-shadow:inset 0 0 60px rgba(79,169,255,.08),0 0 46px rgba(79,169,255,.05)">
+          <span style="position:absolute;top:9px;left:9px;width:16px;height:16px;border-top:1px solid var(--acc,#4fa9ff);border-left:1px solid var(--acc,#4fa9ff);transition:border-color 1s"></span>
+          <span style="position:absolute;top:9px;right:9px;width:16px;height:16px;border-top:1px solid var(--acc,#4fa9ff);border-right:1px solid var(--acc,#4fa9ff);transition:border-color 1s"></span>
+          <span style="position:absolute;bottom:9px;left:9px;width:16px;height:16px;border-bottom:1px solid var(--acc,#4fa9ff);border-left:1px solid var(--acc,#4fa9ff);transition:border-color 1s"></span>
+          <span style="position:absolute;bottom:9px;right:9px;width:16px;height:16px;border-bottom:1px solid var(--acc,#4fa9ff);border-right:1px solid var(--acc,#4fa9ff);transition:border-color 1s"></span>
+          <div style="position:relative;aspect-ratio:4/5;overflow:hidden;display:flex;align-items:center;justify-content:center">
+            <sc-if value="{{ ascii }}" hint-placeholder-val="{{ true }}">
+              <pre style="margin:0;font-size:11px;line-height:1.12;color:#8b929a;text-shadow:0 0 8px rgba(79,169,255,.18);letter-spacing:.4px;animation:drift 7s ease-in-out infinite">           .:----:.
+        .-=+*######*+=:.
+      :=*#%@@@@@@@@%#*=:
+     -*#%@@@@@@@@@@@@%#*-
+    =#%@@@@@@@@@@@@@@@@%#=
+   :*%@@@@@@@%##%@@@@@@@%*:
+   =#%@@@@@%=.  .=%@@@@@%#=
+   +#%@@@@@:  ()  :@@@@@%#+
+   =#%@@@@@=.    .=@@@@@%#=
+   :*%@@@@@@%#==#%@@@@@@%*:
+    =#%@@@@@@@@@@@@@@@@%#=
+     -*#%@@@@@@@@@@@@%#*-
+      :=*#%@@@@@@%%#*=:
+        .:=+*####*+=:.
+           .:----:.</pre>
+            </sc-if>
+            <sc-if value="{{ notAscii }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;inset:0"><image-slot id="hero-portrait" shape="rect" placeholder="portrait.jpg — glisser une photo" style="width:100%;height:100%"></image-slot></div>
+            </sc-if>
+            <div style="position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(79,169,255,.05) 0 1px,transparent 1px 4px)"></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+          <span style="font-size:8.5px;letter-spacing:.16em;color:#3a4047">[ portrait.{{ portraitExt }} ]</span>
+          <button onClick="{{ toggleAscii }}" style="display:flex;align-items:center;gap:8px;border:1px solid rgba(120,165,215,.22);background:rgba(79,169,255,.06);color:var(--acc,#7fc0ff);font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;padding:8px 14px;cursor:pointer;transition:color 1s">⇄ {{ toggleLabel }}</button>
+        </div>
+        <div style="border:1px solid rgba(120,150,190,.16);background:#070a0f;padding:18px 20px;display:flex;flex-direction:column;gap:11px">
+          <div style="font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;color:#454c54;margin-bottom:2px">identité — readout</div>
+          <div style="display:flex;align-items:baseline;gap:12px"><span style="flex:none;width:96px;font-size:11px;color:#6b7178">désignation</span><span style="flex:1;border-bottom:1px dotted rgba(120,150,190,.16);transform:translateY(-3px)"></span><span style="flex:none;font-size:11px;color:#c2c8ce">NotSoul</span></div>
+          <div style="display:flex;align-items:baseline;gap:12px"><span style="flex:none;width:96px;font-size:11px;color:#6b7178">cursus</span><span style="flex:1;border-bottom:1px dotted rgba(120,150,190,.16);transform:translateY(-3px)"></span><span style="flex:none;font-size:11px;color:#c2c8ce">BUT Info · 2ᵉ</span></div>
+          <div style="display:flex;align-items:baseline;gap:12px"><span style="flex:none;width:96px;font-size:11px;color:#6b7178">origine</span><span style="flex:1;border-bottom:1px dotted rgba(120,150,190,.16);transform:translateY(-3px)"></span><span style="flex:none;font-size:11px;color:#c2c8ce">France</span></div>
+          <div style="display:flex;align-items:baseline;gap:12px"><span style="flex:none;width:96px;font-size:11px;color:#6b7178">fils noués</span><span style="flex:1;border-bottom:1px dotted rgba(120,150,190,.16);transform:translateY(-3px)"></span><span style="flex:none;font-size:11px;color:#c2c8ce">37</span></div>
+          <div style="display:flex;align-items:baseline;gap:12px"><span style="flex:none;width:96px;font-size:11px;color:#6b7178">statut</span><span style="flex:1;border-bottom:1px dotted rgba(120,150,190,.16);transform:translateY(-3px)"></span><span style="flex:none;display:inline-flex;align-items:center;gap:7px;font-size:11px;color:var(--acc,#7fc0ff);transition:color 1s"><span style="width:6px;height:6px;border-radius:50%;background:var(--acc,#4fa9ff);box-shadow:0 0 8px var(--acc,#4fa9ff);transition:background 1s,box-shadow 1s"></span>éveillé</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ II · LES FRAGMENTS ============ -->
+    <section id="c2" data-chap="c2" style="min-height:100vh;padding:90px 72px 110px">
+      <div data-reveal="" style="margin-bottom:14px;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#454c54">chapitre II</div>
+      <h2 data-reveal="" style="margin:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:500;font-size:68px;line-height:.95;color:#eaeef2">Les Fragments</h2>
+      <p data-reveal="" data-delay="100" style="font-family:'Cormorant Garamond',serif;font-size:20px;line-height:1.5;color:#9aa1a8;max-width:560px;margin:18px 0 0;text-wrap:pretty">Chaque œuvre commence scellée. Ouvre un fragment : le code se tisse sous tes yeux, puis le module s'éveille — image, description, liens.</p>
+      <div style="height:1px;background:linear-gradient(90deg,var(--acc,#2a313a),transparent);width:240px;margin:26px 0 0;transition:background 1s ease"></div>
+
+      <div data-fragwrap="" style="position:relative;margin-top:56px;padding-left:56px">
+        <svg data-thread="" viewBox="0 0 56 1000" preserveAspectRatio="none" style="position:absolute;left:0;top:0;width:56px;height:100%;overflow:visible;pointer-events:none">
+          <defs>
+            <linearGradient data-threadgrad="" id="threadgrad" x1="0" y1="0" x2="0" y2="1000" gradientUnits="userSpaceOnUse">
+              <stop offset="0" style="stop-color:var(--acc,#4fa9ff)"></stop>
+              <stop offset="0.93" style="stop-color:var(--acc,#4fa9ff)"></stop>
+              <stop offset="1" style="stop-color:var(--acc,#4fa9ff);stop-opacity:0"></stop>
+            </linearGradient>
+          </defs>
+          <path data-threadline="" d="M28 6 L28 994" fill="none" stroke="url(#threadgrad)" stroke-width="1.5" stroke-linecap="round" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 0 4px var(--acc,#4fa9ff))"></path>
+        </svg>
+        <div style="display:flex;flex-direction:column;gap:44px">
+
+        <!-- fragment 1 -->
+        <div data-build="" data-manual="" style="position:relative;border:1px solid rgba(120,150,190,.14);background:#070a0f;padding:24px 26px;overflow:hidden">
+          <span data-node="" style="position:absolute;left:-34px;top:30px;width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(120,150,190,.3);background:#040507;transition:background .6s,border-color .6s,box-shadow .6s;z-index:2"></span>
+          <div data-sealed="" style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+              <div>
+                <div style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#5b626b;margin-bottom:9px;display:flex;align-items:center;gap:8px"><span style="width:6px;height:6px;border:1px solid #3a4047;display:inline-block;transform:rotate(45deg)"></span>fragment_01 · scellé</div>
+                <h3 style="margin:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:32px;line-height:1;color:#8b929a">Le Gardien des Seuils</h3>
+              </div>
+              <span style="flex:none;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:#5b626b;border:1px solid rgba(120,150,190,.18);padding:4px 7px;margin-top:4px">2025</span>
+            </div>
+            <p style="font-family:'Cormorant Garamond',serif;font-size:16px;line-height:1.5;color:#6b7178;margin:0;max-width:460px;text-wrap:pretty">Un module d'accès dort ici, compilé mais scellé — authentification, sessions, silence pour les intrus.</p>
+            <button onClick="{{ openFragment }}" style="align-self:flex-start;display:inline-flex;align-items:center;gap:9px;border:1px solid var(--acc,#2a313a);background:rgba(111,224,208,.07);color:var(--acc,#8fe6d8);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:11px 18px;cursor:pointer;transition:color 1s,border-color 1s" style-hover="border-color:var(--acc,#6fe0d0)">◈ compiler le fragment</button>
+          </div>
+          <div data-bwrap="">
+            <div style="display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:.12em;color:#5b626b;margin-bottom:14px"><span style="width:7px;height:7px;border:1.5px solid var(--acc,#4fa9ff);border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin .7s linear infinite"></span>weaving fragment_01…</div>
+            <pre data-src="" style="display:none">class Gardien {
+  constructor(seuil) {
+    this.seuil = seuil;
+    this.clefs = new Map();
+  }
+  ouvrir(porteur) {
+    return this.clefs.has(porteur.empreinte);
+  }
+}</pre>
+            <pre data-code="" style="margin:0;font-size:12px;line-height:1.7;color:#8b929a;white-space:pre-wrap;min-height:0"></pre>
+            <span data-caret="" style="font-size:12px;color:var(--acc,#4fa9ff);animation:blink 1.6s ease-in-out infinite">▌</span>
+          </div>
+          <div data-final="">
+            <div style="display:grid;grid-template-columns:206px 1fr;gap:26px;align-items:start">
+              <div style="position:relative;border:1px solid rgba(120,150,190,.16);background:#06090e;height:190px;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 40px rgba(79,169,255,.06)">
+                <sc-if value="{{ ascii }}" hint-placeholder-val="{{ true }}">
+                  <pre style="margin:0;font-size:11px;line-height:1.15;color:var(--acc,#8b929a);transition:color 1s">╔═══════════╗
+║ ░░░░░░░░░ ║
+║ ░╔═════╗░ ║
+║ ░║  ◉  ║░ ║
+║ ░║  ║  ║░ ║
+║ ░╚══╩══╝░ ║
+║ ░░░░░░░░░ ║
+╚═════╩═════╝</pre>
+                </sc-if>
+                <sc-if value="{{ notAscii }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;inset:0"><image-slot id="frag-1" shape="rect" placeholder="capture" style="width:100%;height:100%"></image-slot></div>
+                </sc-if>
+              </div>
+              <div>
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+                  <h3 style="margin:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:30px;line-height:1;color:#eaeef2">Le Gardien des Seuils</h3>
+                  <span style="flex:none;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:#5b626b;border:1px solid rgba(120,150,190,.18);padding:4px 7px;margin-top:4px">2025</span>
+                </div>
+                <p style="font-family:'Cormorant Garamond',serif;font-size:18px;line-height:1.5;color:#9aa1a8;margin:12px 0 0;text-wrap:pretty">Un système d'accès qui ne reconnaît que les empreintes vraies. Il garde les portes là où d'autres laissent passer l'ombre — authentification, sessions, et le silence pour les intrus.</p>
+                <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:16px">
+                  <span style="font-size:9px;letter-spacing:.08em;color:#7f8790;border:1px solid rgba(120,150,190,.16);padding:4px 9px">Node.js</span>
+                  <span style="font-size:9px;letter-spacing:.08em;color:#7f8790;border:1px solid rgba(120,150,190,.16);padding:4px 9px">JWT</span>
+                  <span style="font-size:9px;letter-spacing:.08em;color:#7f8790;border:1px solid rgba(120,150,190,.16);padding:4px 9px">PostgreSQL</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:18px;margin-top:20px;padding-top:16px;border-top:1px solid rgba(120,150,190,.1)">
+                  <a href="#c2" style="font-size:10px;letter-spacing:.1em;color:var(--acc,#8fe6d8);transition:color 1s">démo ↗</a>
+                  <a href="#c2" style="font-size:10px;letter-spacing:.1em;color:#5b626b">code ↗</a>
+                  <span style="margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--acc,#7fc0ff);border:1px solid var(--acc,#2a313a);padding:5px 10px;background:rgba(79,169,255,.05);transition:color 1s,border-color 1s"><span style="width:6px;height:6px;border-radius:50%;background:var(--acc,#4fa9ff);box-shadow:0 0 8px var(--acc,#4fa9ff);transition:background 1s,box-shadow 1s"></span>module éveillé</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- fragment 2 -->
+        <div data-build="" data-manual="" style="position:relative;border:1px solid rgba(120,150,190,.14);background:#070a0f;padding:24px 26px;overflow:hidden">
+          <span data-node="" style="position:absolute;left:-34px;top:30px;width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(120,150,190,.3);background:#040507;transition:background .6s,border-color .6s,box-shadow .6s;z-index:2"></span>
+          <div data-sealed="" style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+              <div>
+                <div style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#5b626b;margin-bottom:9px;display:flex;align-items:center;gap:8px"><span style="width:6px;height:6px;border:1px solid #3a4047;display:inline-block;transform:rotate(45deg)"></span>fragment_02 · scellé</div>
+                <h3 style="margin:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:32px;line-height:1;color:#8b929a">L'Atlas des Murmures</h3>
+              </div>
+              <span style="flex:none;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:#5b626b;border:1px solid rgba(120,150,190,.18);padding:4px 7px;margin-top:4px">2024</span>
+            </div>
+            <p style="font-family:'Cormorant Garamond',serif;font-size:16px;line-height:1.5;color:#6b7178;margin:0;max-width:460px;text-wrap:pretty">Une carte vivante des données dispersées attend d'être tissée — flux écoutés, regroupés, dessinés.</p>
+            <button onClick="{{ openFragment }}" style="align-self:flex-start;display:inline-flex;align-items:center;gap:9px;border:1px solid var(--acc,#2a313a);background:rgba(111,224,208,.07);color:var(--acc,#8fe6d8);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:11px 18px;cursor:pointer;transition:color 1s,border-color 1s" style-hover="border-color:var(--acc,#6fe0d0)">◈ compiler le fragment</button>
+          </div>
+          <div data-bwrap="">
+            <div style="display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:.12em;color:#5b626b;margin-bottom:14px"><span style="width:7px;height:7px;border:1.5px solid var(--acc,#4fa9ff);border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin .7s linear infinite"></span>weaving fragment_02…</div>
+            <pre data-src="" style="display:none">def cartographier(murmures):
+    atlas = {}
+    for m in murmures:
+        atlas.setdefault(m.region, [])
+        atlas[m.region].append(m.echo)
+    return tracer(atlas)</pre>
+            <pre data-code="" style="margin:0;font-size:12px;line-height:1.7;color:#8b929a;white-space:pre-wrap;min-height:0"></pre>
+            <span data-caret="" style="font-size:12px;color:var(--acc,#4fa9ff);animation:blink 1.6s ease-in-out infinite">▌</span>
+          </div>
+          <div data-final="">
+            <div style="display:grid;grid-template-columns:206px 1fr;gap:26px;align-items:start">
+              <div style="position:relative;border:1px solid rgba(120,150,190,.16);background:#06090e;height:190px;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 40px rgba(79,169,255,.06)">
+                <sc-if value="{{ ascii }}" hint-placeholder-val="{{ true }}">
+                  <pre style="margin:0;font-size:11px;line-height:1.15;color:var(--acc,#8b929a);transition:color 1s">◦───◦────◦──◦
+│  ╱╲  │  ╱ │
+◦─◦  ◦─◦─◦  ◦
+│ ╲╱  │   ╱
+◦──◉──◦──◦
+│  ╱╲  │  ╲
+◦─◦  ◦─◦───◦</pre>
+                </sc-if>
+                <sc-if value="{{ notAscii }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;inset:0"><image-slot id="frag-2" shape="rect" placeholder="capture" style="width:100%;height:100%"></image-slot></div>
+                </sc-if>
+              </div>
+              <div>
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+                  <h3 style="margin:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:30px;line-height:1;color:#eaeef2">L'Atlas des Murmures</h3>
+                  <span style="flex:none;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:#5b626b;border:1px solid rgba(120,150,190,.18);padding:4px 7px;margin-top:4px">2024</span>
+                </div>
+                <p style="font-family:'Cormorant Garamond',serif;font-size:18px;line-height:1.5;color:#9aa1a8;margin:12px 0 0;text-wrap:pretty">Une carte vivante des données dispersées. Elle écoute les flux, les regroupe par territoire, et dessine ce que personne n'avait su voir — un atlas qui se redessine à chaque écho reçu.</p>
+                <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:16px">
+                  <span style="font-size:9px;letter-spacing:.08em;color:#7f8790;border:1px solid rgba(120,150,190,.16);padding:4px 9px">Python</span>
+                  <span style="font-size:9px;letter-spacing:.08em;color:#7f8790;border:1px solid rgba(120,150,190,.16);padding:4px 9px">D3.js</span>
+                  <span style="font-size:9px;letter-spacing:.08em;color:#7f8790;border:1px solid rgba(120,150,190,.16);padding:4px 9px">FastAPI</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:18px;margin-top:20px;padding-top:16px;border-top:1px solid rgba(120,150,190,.1)">
+                  <a href="#c2" style="font-size:10px;letter-spacing:.1em;color:var(--acc,#8fe6d8);transition:color 1s">démo ↗</a>
+                  <a href="#c2" style="font-size:10px;letter-spacing:.1em;color:#5b626b">code ↗</a>
+                  <span style="margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--acc,#7fc0ff);border:1px solid var(--acc,#2a313a);padding:5px 10px;background:rgba(79,169,255,.05);transition:color 1s,border-color 1s"><span style="width:6px;height:6px;border-radius:50%;background:var(--acc,#4fa9ff);box-shadow:0 0 8px var(--acc,#4fa9ff);transition:background 1s,box-shadow 1s"></span>module éveillé</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- fragment 3 -->
+        <div data-build="" data-manual="" style="position:relative;border:1px solid rgba(120,150,190,.14);background:#070a0f;padding:24px 26px;overflow:hidden">
+          <span data-node="" style="position:absolute;left:-34px;top:30px;width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(120,150,190,.3);background:#040507;transition:background .6s,border-color .6s,box-shadow .6s;z-index:2"></span>
+          <div data-sealed="" style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+              <div>
+                <div style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#5b626b;margin-bottom:9px;display:flex;align-items:center;gap:8px"><span style="width:6px;height:6px;border:1px solid #3a4047;display:inline-block;transform:rotate(45deg)"></span>fragment_03 · scellé</div>
+                <h3 style="margin:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:32px;line-height:1;color:#8b929a">La Forge Silencieuse</h3>
+              </div>
+              <span style="flex:none;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:#5b626b;border:1px solid rgba(120,150,190,.18);padding:4px 7px;margin-top:4px">2024</span>
+            </div>
+            <p style="font-family:'Cormorant Garamond',serif;font-size:16px;line-height:1.5;color:#6b7178;margin:0;max-width:460px;text-wrap:pretty">Un outil qui compile sans bruit sommeille — glyphes épars en entrée, binaire net en sortie.</p>
+            <button onClick="{{ openFragment }}" style="align-self:flex-start;display:inline-flex;align-items:center;gap:9px;border:1px solid var(--acc,#2a313a);background:rgba(111,224,208,.07);color:var(--acc,#8fe6d8);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:11px 18px;cursor:pointer;transition:color 1s,border-color 1s" style-hover="border-color:var(--acc,#6fe0d0)">◈ compiler le fragment</button>
+          </div>
+          <div data-bwrap="">
+            <div style="display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:.12em;color:#5b626b;margin-bottom:14px"><span style="width:7px;height:7px;border:1.5px solid var(--acc,#4fa9ff);border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin .7s linear infinite"></span>weaving fragment_03…</div>
+            <pre data-src="" style="display:none">$ forge build --silent
+  ↳ parsing glyphs ........ ok
+  ↳ linking runes ......... ok
+  ↳ emit ./forge.bin ...... ok
+done in 0.42s</pre>
+            <pre data-code="" style="margin:0;font-size:12px;line-height:1.7;color:#8b929a;white-space:pre-wrap;min-height:0"></pre>
+            <span data-caret="" style="font-size:12px;color:var(--acc,#4fa9ff);animation:blink 1.6s ease-in-out infinite">▌</span>
+          </div>
+          <div data-final="">
+            <div style="display:grid;grid-template-columns:206px 1fr;gap:26px;align-items:start">
+              <div style="position:relative;border:1px solid rgba(120,150,190,.16);background:#06090e;height:190px;overflow:hidden;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 40px rgba(79,169,255,.06)">
+                <sc-if value="{{ ascii }}" hint-placeholder-val="{{ true }}">
+                  <pre style="margin:0;font-size:11px;line-height:1.15;color:var(--acc,#8b929a);transition:color 1s">    ▄███▄
+  ▄███████▄
+  ▀▀▀███▀▀▀
+     ███
+   ▄▄███▄▄
+  █████████
+  ▀▀▀▀▀▀▀▀▀</pre>
+                </sc-if>
+                <sc-if value="{{ notAscii }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;inset:0"><image-slot id="frag-3" shape="rect" placeholder="capture" style="width:100%;height:100%"></image-slot></div>
+                </sc-if>
+              </div>
+              <div>
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+                  <h3 style="margin:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:30px;line-height:1;color:#eaeef2">La Forge Silencieuse</h3>
+                  <span style="flex:none;font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:#5b626b;border:1px solid rgba(120,150,190,.18);padding:4px 7px;margin-top:4px">2024</span>
+                </div>
+                <p style="font-family:'Cormorant Garamond',serif;font-size:18px;line-height:1.5;color:#9aa1a8;margin:12px 0 0;text-wrap:pretty">Un outil en ligne de commande qui compile sans bruit. On lui confie des glyphes épars, il rend un binaire net — la discrétion faite machine, pensée pour ceux qui n'aiment pas le tapage.</p>
+                <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:16px">
+                  <span style="font-size:9px;letter-spacing:.08em;color:#7f8790;border:1px solid rgba(120,150,190,.16);padding:4px 9px">Rust</span>
+                  <span style="font-size:9px;letter-spacing:.08em;color:#7f8790;border:1px solid rgba(120,150,190,.16);padding:4px 9px">CLI</span>
+                  <span style="font-size:9px;letter-spacing:.08em;color:#7f8790;border:1px solid rgba(120,150,190,.16);padding:4px 9px">WASM</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:18px;margin-top:20px;padding-top:16px;border-top:1px solid rgba(120,150,190,.1)">
+                  <a href="#c2" style="font-size:10px;letter-spacing:.1em;color:var(--acc,#8fe6d8);transition:color 1s">démo ↗</a>
+                  <a href="#c2" style="font-size:10px;letter-spacing:.1em;color:#5b626b">code ↗</a>
+                  <span style="margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--acc,#7fc0ff);border:1px solid var(--acc,#2a313a);padding:5px 10px;background:rgba(79,169,255,.05);transition:color 1s,border-color 1s"><span style="width:6px;height:6px;border-radius:50%;background:var(--acc,#4fa9ff);box-shadow:0 0 8px var(--acc,#4fa9ff);transition:background 1s,box-shadow 1s"></span>module éveillé</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ III · L'ARSENAL ============ -->
+    <section id="c3" data-chap="c3" style="min-height:100vh;padding:90px 72px 110px">
+      <div data-reveal="" style="margin-bottom:14px;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#454c54">chapitre III</div>
+      <h2 data-reveal="" style="margin:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:500;font-size:68px;line-height:.95;color:#eaeef2">L'Arsenal</h2>
+      <p data-reveal="" data-delay="100" style="font-family:'Cormorant Garamond',serif;font-size:20px;line-height:1.5;color:#9aa1a8;max-width:560px;margin:18px 0 0;text-wrap:pretty">Les outils d'un tisseur ne sont pas des armes — ce sont des langages. L'index se résout écheveau après écheveau, fil après fil.</p>
+      <div style="height:1px;background:linear-gradient(90deg,var(--acc,#2a313a),transparent);width:240px;margin:26px 0 0;transition:background 1s ease"></div>
+
+      <div data-arsenal="" data-reveal="" style="margin-top:48px;border:1px solid rgba(120,150,190,.16);background:#070a0f">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 30px;border-bottom:1px solid rgba(120,150,190,.12);font-size:10px;letter-spacing:.16em;color:#5b626b">
+          <span>~/NotSoul/arsenal — index</span>
+          <span data-arsum="" style="color:var(--acc,#7f8790);transition:color 1s">3 écheveaux · 10 fils</span>
+        </div>
+        <div style="padding:15px 30px;border-bottom:1px solid rgba(120,150,190,.1)">
+          <pre data-arboot="" style="margin:0;font-size:11px;line-height:1.7;color:#5b626b;min-height:34px;white-space:pre-wrap"></pre>
+        </div>
+
+        <div data-arow="" style="display:grid;grid-template-columns:220px 1.1fr 300px;gap:36px;padding:26px 30px;align-items:start">
+          <div>
+            <div style="font-size:9px;letter-spacing:.18em;color:#454c54;margin-bottom:5px">01</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:27px;color:#eaeef2;line-height:1">Langages</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <div data-fil="" style="display:flex;align-items:baseline;gap:14px"><span style="flex:none;width:104px;font-size:13px;color:#c2c8ce">python</span><span data-leader="" style="flex:1;border-bottom:1px dotted rgba(120,150,190,.22);transform:translateY(-3px)"></span><span data-lvl="" style="flex:none;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:var(--acc,#7f8790);transition:color 1s">expert</span></div>
+            <div data-fil="" style="display:flex;align-items:baseline;gap:14px"><span style="flex:none;width:104px;font-size:13px;color:#c2c8ce">javascript</span><span data-leader="" style="flex:1;border-bottom:1px dotted rgba(120,150,190,.22);transform:translateY(-3px)"></span><span data-lvl="" style="flex:none;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:var(--acc,#7f8790);transition:color 1s">avancé</span></div>
+            <div data-fil="" style="display:flex;align-items:baseline;gap:14px"><span style="flex:none;width:104px;font-size:13px;color:#c2c8ce">c</span><span data-leader="" style="flex:1;border-bottom:1px dotted rgba(120,150,190,.22);transform:translateY(-3px)"></span><span data-lvl="" style="flex:none;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:var(--acc,#7f8790);transition:color 1s">solide</span></div>
+            <div data-fil="" style="display:flex;align-items:baseline;gap:14px"><span style="flex:none;width:104px;font-size:13px;color:#c2c8ce">rust</span><span data-leader="" style="flex:1;border-bottom:1px dotted rgba(120,150,190,.22);transform:translateY(-3px)"></span><span data-lvl="" style="flex:none;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:var(--acc,#7f8790);transition:color 1s">en apprentissage</span></div>
+          </div>
+          <div>
+            <div style="font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:#454c54;margin-bottom:9px">aspects noués</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <span style="font-size:9px;letter-spacing:.08em;color:#7f8790;border:1px solid rgba(120,150,190,.16);padding:4px 9px">algorithmes</span>
+              <span style="font-size:9px;letter-spacing:.08em;color:#7f8790;border:1px solid rgba(120,150,190,.16);padding:4px 9px">structures de données</span>
+              <span style="font-size:9px;letter-spacing:.08em;color:#7f8790;border:1px solid rgba(120,150,190,.16);padding:4px 9px">systèmes</span>
+            </div>
+          </div>
+        </div>
+
+        <div data-arow="" style="display:grid;grid-template-columns:220px 1.1fr 300px;gap:36px;padding:26px 30px;align-items:start;border-top:1px solid rgba(120,150,190,.1)">
+          <div>
+            <div style="font-size:9px;letter-spacing:.18em;color:#454c54;margin-bottom:5px">02</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:27px;color:#eaeef2;line-height:1">Web &amp; Données</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <div data-fil="" style="display:flex;align-items:baseline;gap:14px"><span style="flex:none;width:104px;font-size:13px;color:#c2c8ce">react</span><span data-leader="" style="flex:1;border-bottom:1px dotted rgba(120,150,190,.22);transform:translateY(-3px)"></span><span data-lvl="" style="flex:none;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:var(--acc,#7f8790);transition:color 1s">avancé</span></div>
+            <div data-fil="" style="display:flex;align-items:baseline;gap:14px"><span style="flex:none;width:104px;font-size:13px;color:#c2c8ce">node</span><span data-leader="" style="flex:1;border-bottom:1px dotted rgba(120,150,190,.22);transform:translateY(-3px)"></span><span data-lvl="" style="flex:none;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:var(--acc,#7f8790);transition:color 1s">avancé</span></div>
+            <div data-fil="" style="display:flex;align-items:baseline;gap:14px"><span style="flex:none;width:104px;font-size:13px;color:#c2c8ce">sql</span><span data-leader="" style="flex:1;border-bottom:1px dotted rgba(120,150,190,.22);transform:translateY(-3px)"></span><span data-lvl="" style="flex:none;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:var(--acc,#7f8790);transition:color 1s">solide</span></div>
+          </div>
+          <div>
+            <div style="font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:#454c54;margin-bottom:9px">aspects noués</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <span style="font-size:9px;letter-spacing:.08em;color:#7f8790;border:1px solid rgba(120,150,190,.16);padding:4px 9px">API</span>
+              <span style="font-size:9px;letter-spacing:.08em;color:#7f8790;border:1px solid rgba(120,150,190,.16);padding:4px 9px">bases de données</span>
+              <span style="font-size:9px;letter-spacing:.08em;color:#7f8790;border:1px solid rgba(120,150,190,.16);padding:4px 9px">interfaces</span>
+            </div>
+          </div>
+        </div>
+
+        <div data-arow="" style="display:grid;grid-template-columns:220px 1.1fr 300px;gap:36px;padding:26px 30px;align-items:start;border-top:1px solid rgba(120,150,190,.1)">
+          <div>
+            <div style="font-size:9px;letter-spacing:.18em;color:#454c54;margin-bottom:5px">03</div>
+            <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:27px;color:#eaeef2;line-height:1">Outils</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <div data-fil="" style="display:flex;align-items:baseline;gap:14px"><span style="flex:none;width:104px;font-size:13px;color:#c2c8ce">git</span><span data-leader="" style="flex:1;border-bottom:1px dotted rgba(120,150,190,.22);transform:translateY(-3px)"></span><span data-lvl="" style="flex:none;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:var(--acc,#7f8790);transition:color 1s">réflexe</span></div>
+            <div data-fil="" style="display:flex;align-items:baseline;gap:14px"><span style="flex:none;width:104px;font-size:13px;color:#c2c8ce">linux</span><span data-leader="" style="flex:1;border-bottom:1px dotted rgba(120,150,190,.22);transform:translateY(-3px)"></span><span data-lvl="" style="flex:none;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:var(--acc,#7f8790);transition:color 1s">quotidien</span></div>
+            <div data-fil="" style="display:flex;align-items:baseline;gap:14px"><span style="flex:none;width:104px;font-size:13px;color:#c2c8ce">docker</span><span data-leader="" style="flex:1;border-bottom:1px dotted rgba(120,150,190,.22);transform:translateY(-3px)"></span><span data-lvl="" style="flex:none;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:var(--acc,#7f8790);transition:color 1s">en apprentissage</span></div>
+          </div>
+          <div>
+            <div style="font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:#454c54;margin-bottom:9px">aspects noués</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <span style="font-size:9px;letter-spacing:.08em;color:#7f8790;border:1px solid rgba(120,150,190,.16);padding:4px 9px">déploiement</span>
+              <span style="font-size:9px;letter-spacing:.08em;color:#7f8790;border:1px solid rgba(120,150,190,.16);padding:4px 9px">environnements</span>
+              <span style="font-size:9px;letter-spacing:.08em;color:#7f8790;border:1px solid rgba(120,150,190,.16);padding:4px 9px">collaboration</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:14px;padding:18px 30px;border-top:1px solid rgba(120,150,190,.12);background:rgba(169,139,255,.03)">
+          <span style="width:7px;height:7px;border-radius:50%;background:var(--acc,#4fa9ff);box-shadow:0 0 8px var(--acc,#4fa9ff);flex:none;transition:background 1s,box-shadow 1s"></span>
+          <p style="margin:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:17px;line-height:1.5;color:#9aa1a8">Trois écheveaux, un seul métier à tisser : chaque langage sert une structure, chaque outil sert un geste — rien n'est isolé.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ IV · LES ÉCHOS ============ -->
+    <section id="c4" data-chap="c4" style="min-height:100vh;padding:90px 72px 110px">
+      <div data-reveal="" style="margin-bottom:14px;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#454c54">chapitre IV</div>
+      <h2 data-reveal="" style="margin:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:500;font-size:68px;line-height:.95;color:#eaeef2">Les Échos</h2>
+      <p data-reveal="" data-delay="100" style="font-family:'Cormorant Garamond',serif;font-size:20px;line-height:1.5;color:#9aa1a8;max-width:560px;margin:18px 0 0;text-wrap:pretty">Certains gestes résonnent plus loin que d'autres. Ce sont les échos — les moments où le code a rencontré le monde.</p>
+      <div style="height:1px;background:linear-gradient(90deg,var(--acc,#2a313a),transparent);width:240px;margin:26px 0 0;transition:background 1s ease"></div>
+
+      <div style="margin-top:50px">
+        <div data-reveal="" style="display:flex;gap:24px;padding:0 0 38px 28px;position:relative;border-left:1px solid rgba(120,150,190,.12);margin-left:8px">
+          <span style="position:absolute;left:-5px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--acc,#23282f);box-shadow:0 0 10px var(--acc,transparent);transition:background 1s,box-shadow 1s"></span>
+          <div style="flex:none;width:64px;font-size:11px;letter-spacing:.1em;color:#5b626b;padding-top:2px">2025</div>
+          <div>
+            <h3 style="margin:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;color:#eaeef2">Premier Fil Noué</h3>
+            <p style="font-family:'Cormorant Garamond',serif;font-size:18px;line-height:1.5;color:#9aa1a8;margin:8px 0 0;max-width:620px;text-wrap:pretty">Lauréat d'un hackathon de 48 heures — un outil né dans la nuit, compilé à l'aube, applaudi avant le café. Le premier signe que le silence pouvait porter loin.</p>
+          </div>
+        </div>
+        <div data-reveal="" data-delay="100" style="display:flex;gap:24px;padding:0 0 38px 28px;position:relative;border-left:1px solid rgba(120,150,190,.12);margin-left:8px">
+          <span style="position:absolute;left:-5px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--acc,#23282f);box-shadow:0 0 10px var(--acc,transparent);transition:background 1s,box-shadow 1s"></span>
+          <div style="flex:none;width:64px;font-size:11px;letter-spacing:.1em;color:#5b626b;padding-top:2px">2024</div>
+          <div>
+            <h3 style="margin:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;color:#eaeef2">La Voix Open-Source</h3>
+            <p style="font-family:'Cormorant Garamond',serif;font-size:18px;line-height:1.5;color:#9aa1a8;margin:8px 0 0;max-width:620px;text-wrap:pretty">Contributeur sur un projet libre suivi par des milliers — quelques lignes glissées dans un dépôt commun, et le code continue de résonner sans porter mon nom.</p>
+          </div>
+        </div>
+        <div data-reveal="" data-delay="180" style="display:flex;gap:24px;padding:0 0 4px 28px;position:relative;border-left:1px solid transparent;margin-left:8px">
+          <span style="position:absolute;left:-5px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--acc,#23282f);box-shadow:0 0 10px var(--acc,transparent);transition:background 1s,box-shadow 1s"></span>
+          <div style="flex:none;width:64px;font-size:11px;letter-spacing:.1em;color:#5b626b;padding-top:2px">2023</div>
+          <div>
+            <h3 style="margin:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;color:#eaeef2">L'Apprenti Tisseur</h3>
+            <p style="font-family:'Cormorant Garamond',serif;font-size:18px;line-height:1.5;color:#9aa1a8;margin:8px 0 0;max-width:620px;text-wrap:pretty">Entrée au BUT Informatique. Le premier fil tendu entre l'intuition et la méthode — là où la curiosité est devenue discipline.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ V · LE LIEN ============ -->
+    <section id="c5" data-chap="c5" style="min-height:100vh;padding:90px 72px 80px;display:flex;flex-direction:column;justify-content:center">
+      <div data-reveal="" style="margin-bottom:14px;font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#454c54">épilogue — chapitre V</div>
+      <h2 data-reveal="" style="margin:0;font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:500;font-size:72px;line-height:.95;color:#eaeef2">Le Lien</h2>
+      <p data-reveal="" data-delay="100" style="font-family:'Cormorant Garamond',serif;font-size:20px;line-height:1.5;color:#9aa1a8;max-width:560px;margin:18px 0 0;text-wrap:pretty">Aucune chronique ne se ferme seule. Il reste à tendre le dernier fil — celui qui sort de la page et rejoint quelqu'un. Toi, peut-être.</p>
+      <div style="height:1px;background:linear-gradient(90deg,var(--acc,#2a313a),transparent);width:240px;margin:26px 0 0;transition:background 1s ease"></div>
+
+      <div data-build="" style="position:relative;border:1px solid rgba(120,150,190,.14);background:#070a0f;min-height:240px;padding:24px 26px;overflow:hidden;margin-top:42px;max-width:760px">
+        <div data-bwrap="">
+          <div style="display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:.12em;color:#5b626b;margin-bottom:14px"><span style="width:7px;height:7px;border:1.5px solid var(--acc,#f5b65a);border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin .7s linear infinite"></span>opening channels…</div>
+          <pre data-src="" style="display:none">$ ./connect.sh
+  ↳ resolving channels ...... ok
+  ↳ opening github .......... ok
+  ↳ opening linkedin ........ ok
+  ↳ link established</pre>
+          <pre data-code="" style="margin:0;font-size:12px;line-height:1.7;color:#8b929a;white-space:pre-wrap;min-height:120px"></pre>
+          <span data-caret="" style="font-size:12px;color:var(--acc,#f5b65a);animation:blink 1.6s ease-in-out infinite">▌</span>
+        </div>
+        <div data-final="">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+            <a href="#c5" style="text-decoration:none;border:1px solid rgba(120,150,190,.16);padding:18px;display:flex;flex-direction:column;gap:6px;transition:border-color .3s" style-hover="border-color:var(--acc,#f5b65a)">
+              <span style="font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#5b626b">01 — dépôt</span>
+              <span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;color:#eaeef2">GitHub</span>
+              <span style="font-size:10px;color:var(--acc,#7f8790);transition:color 1s">github.com/NotSoul</span>
+            </a>
+            <a href="#c5" style="text-decoration:none;border:1px solid rgba(120,150,190,.16);padding:18px;display:flex;flex-direction:column;gap:6px;transition:border-color .3s" style-hover="border-color:var(--acc,#f5b65a)">
+              <span style="font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#5b626b">02 — réseau</span>
+              <span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;color:#eaeef2">LinkedIn</span>
+              <span style="font-size:10px;color:var(--acc,#7f8790);transition:color 1s">in/NotSoul</span>
+            </a>
+            <a href="#c5" style="text-decoration:none;border:1px solid rgba(120,150,190,.16);padding:18px;display:flex;flex-direction:column;gap:6px;transition:border-color .3s" style-hover="border-color:var(--acc,#f5b65a)">
+              <span style="font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#5b626b">03 — voix</span>
+              <span style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:24px;color:#eaeef2">Email</span>
+              <span style="font-size:10px;color:var(--acc,#7f8790);transition:color 1s">notsoul@chronicle.dev</span>
+            </a>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:22px;padding-top:16px;border-top:1px solid rgba(120,150,190,.1)">
+            <span style="display:inline-flex;align-items:center;gap:7px;font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--acc,#f5b65a);border:1px solid var(--acc,#2a313a);padding:5px 10px;background:rgba(245,182,90,.06);transition:color 1s,border-color 1s"><span style="width:6px;height:6px;border-radius:50%;background:var(--acc,#f5b65a);box-shadow:0 0 8px var(--acc,#f5b65a);transition:background 1s,box-shadow 1s"></span>lien établi</span>
+          </div>
+        </div>
+      </div>
+
+      <div data-reveal="" style="margin-top:64px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+        <div style="display:flex;gap:7px">
+          <span style="width:12px;height:12px;border-radius:50%;background:#4fa9ff;box-shadow:0 0 9px #4fa9ff"></span>
+          <span style="width:12px;height:12px;border-radius:50%;background:#6fe0d0;box-shadow:0 0 9px #6fe0d0"></span>
+          <span style="width:12px;height:12px;border-radius:50%;background:#a98bff;box-shadow:0 0 9px #a98bff"></span>
+          <span style="width:12px;height:12px;border-radius:50%;background:#ff5d6c;box-shadow:0 0 9px #ff5d6c"></span>
+          <span style="width:12px;height:12px;border-radius:50%;background:#f5b65a;box-shadow:0 0 9px #f5b65a"></span>
+        </div>
+        <span style="font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#5b626b">chronique complète — palette restaurée</span>
+      </div>
+      <div style="margin-top:18px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:#454c54">— fin de la chronique oubliée du code du tisseur —</div>
+    </section>
+
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  readCookie(k){
+    const m = document.cookie.match(new RegExp('(?:^|; )' + k + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+  writeCookie(k, v){ document.cookie = k + '=' + v + ';path=/;max-age=31536000'; }
+
+  state = { ascii: this.readCookie('weaver_ascii') !== '0' };
+
+  setRoot = (el) => { this.root = el; };
+
+  toggleAscii = () => {
+    this.setState(s => {
+      const n = !s.ascii;
+      this.writeCookie('weaver_ascii', n ? '1' : '0');
+      return { ascii: n };
+    });
+  };
+
+  openFragment = (e) => {
+    const card = e.target.closest('[data-build]');
+    if (card) this.build(card);
+  };
+
+  type(el, text, speed){
+    return new Promise(res => {
+      let i = 0;
+      const tick = () => {
+        el.textContent = text.slice(0, i++);
+        if (i <= text.length) setTimeout(tick, speed);
+        else res();
+      };
+      tick();
+    });
+  }
+
+  awaken(id){
+    if (!this.awoken) this.awoken = {};
+    if (this.awoken[id]) return;
+    this.awoken[id] = true;
+    const color = this.colors[id];
+    const sec = this.root.querySelector('[data-chap="' + id + '"]');
+    if (sec) sec.style.setProperty('--acc', color);
+    const rail = this.root.querySelector('[data-rail="' + id + '"]');
+    if (rail) rail.style.color = color;
+    const pal = this.root.querySelector('[data-pal="' + id + '"]');
+    if (pal){ pal.style.background = color; pal.style.boxShadow = '0 0 9px ' + color; }
+  }
+
+  setActive(id){
+    if (this.activeId === id) return;
+    this.activeId = id;
+    this.root.querySelectorAll('[data-rail]').forEach(r => {
+      r.style.textShadow = (r.getAttribute('data-rail') === id) ? '0 0 12px currentColor' : 'none';
+    });
+  }
+
+  growThread(node){
+    const dot = node.querySelector('[data-node]');
+    if (!dot || !this.threadEl) return;
+    const wrap = this.root.querySelector('[data-fragwrap]');
+    if (!wrap) return;
+    const y = node.offsetTop + dot.offsetTop + 6;
+    let frac = Math.min(1, y / wrap.offsetHeight);
+    const cards = wrap.querySelectorAll('[data-build]');
+    if (node === cards[cards.length - 1]) frac = 1;
+    this.threadFrac = Math.max(this.threadFrac || 0, frac);
+    this.threadEl.style.strokeDashoffset = this.threadLen * (1 - this.threadFrac);
+    const c = this.colors[this.activeId] || '#4fa9ff';
+    dot.style.background = c; dot.style.borderColor = c; dot.style.boxShadow = '0 0 10px ' + c;
+  }
+
+  async build(node){
+    if (node.dataset.built) return;
+    node.dataset.built = '1';
+    const sealed = node.querySelector('[data-sealed]');
+    const src = node.querySelector('[data-src]');
+    const code = node.querySelector('[data-code]');
+    const caret = node.querySelector('[data-caret]');
+    const wrap = node.querySelector('[data-bwrap]');
+    const fin = node.querySelector('[data-final]');
+    if (sealed){
+      sealed.style.transition = 'opacity .3s ease';
+      sealed.style.opacity = '0';
+      await new Promise(r => setTimeout(r, 300));
+      sealed.style.display = 'none';
+    }
+    if (wrap){ wrap.style.display = ''; wrap.style.opacity = '1'; }
+    await this.type(code, (src.textContent || '').trim(), 13);
+    this.growThread(node);
+    if (caret) caret.style.opacity = '0';
+    await new Promise(r => setTimeout(r, 340));
+    if (wrap){ wrap.style.transition = 'opacity .35s ease'; wrap.style.opacity = '0'; }
+    await new Promise(r => setTimeout(r, 360));
+    if (wrap) wrap.style.display = 'none';
+    if (fin){ fin.style.display = ''; void fin.offsetHeight; fin.style.transition = 'opacity .8s ease, transform .8s ease'; fin.style.opacity = '1'; fin.style.transform = 'none'; }
+  }
+
+  async buildArsenal(node){
+    if (node.dataset.built) return;
+    node.dataset.built = '1';
+    const boot = node.querySelector('[data-arboot]');
+    if (boot) await this.type(boot, '$ tree ~/NotSoul/arsenal --depth 1\n  \u21b3 résolution des écheveaux ......... ok', 14);
+    await new Promise(r => setTimeout(r, 160));
+    const rows = [...node.querySelectorAll('[data-arow]')];
+    for (const row of rows){
+      row.style.opacity = '1';
+      row.style.transform = 'none';
+      const fils = [...row.querySelectorAll('[data-fil]')];
+      for (const f of fils){
+        const leader = f.querySelector('[data-leader]');
+        const lvl = f.querySelector('[data-lvl]');
+        if (leader) leader.style.transform = 'translateY(-3px) scaleX(1)';
+        if (lvl) lvl.style.opacity = '1';
+        await new Promise(r => setTimeout(r, 95));
+      }
+      await new Promise(r => setTimeout(r, 150));
+    }
+    const sum = node.querySelector('[data-arsum]');
+    if (sum) sum.style.opacity = '1';
+  }
+
+  componentDidMount(){
+    this.colors = { c1:'#4fa9ff', c2:'#6fe0d0', c3:'#a98bff', c4:'#ff5d6c', c5:'#f5b65a' };
+    const root = this.root;
+    if (!root) return;
+
+    // light chapter I immediately (no wait for boot)
+    this.setActive('c1');
+    this.awaken('c1');
+
+    // --- reveal-on-scroll ---
+    const rev = [...root.querySelectorAll('[data-reveal]')];
+    rev.forEach(el => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(18px)';
+      const d = (parseInt(el.getAttribute('data-delay')) || 0) / 1000;
+      el.style.transition = 'opacity .8s ease ' + d + 's, transform .8s ease ' + d + 's';
+    });
+    const ro = new IntersectionObserver((es) => {
+      es.forEach(e => {
+        if (e.isIntersecting){ e.target.style.opacity = '1'; e.target.style.transform = 'none'; ro.unobserve(e.target); }
+      });
+    }, { threshold: 0.15 });
+    rev.forEach(el => ro.observe(el));
+
+    // --- build modules ---
+    const builds = [...root.querySelectorAll('[data-build]')];
+    builds.forEach(node => {
+      const fin = node.querySelector('[data-final]');
+      if (fin){ fin.style.opacity = '0'; fin.style.transform = 'translateY(10px)'; fin.style.display = 'none'; }
+      if (node.hasAttribute('data-manual')){
+        const wrap = node.querySelector('[data-bwrap]');
+        if (wrap) wrap.style.display = 'none';
+      }
+    });
+    const bo = new IntersectionObserver((es) => {
+      es.forEach(e => {
+        if (e.isIntersecting){
+          if (!e.target.hasAttribute('data-manual')) this.build(e.target);
+          bo.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    builds.forEach(n => bo.observe(n));
+
+    // --- weaving thread ---
+    const thread = root.querySelector('[data-threadline]');
+    if (thread){
+      const L = thread.getTotalLength();
+      thread.style.strokeDasharray = L;
+      thread.style.strokeDashoffset = L;
+      thread.style.transition = 'stroke-dashoffset 1.1s cubic-bezier(.4,0,.2,1)';
+      this.threadEl = thread; this.threadLen = L;
+    }
+
+    // --- arsenal construction ---
+    const ars = root.querySelector('[data-arsenal]');
+    if (ars){
+      ars.querySelectorAll('[data-arow]').forEach(r => {
+        r.style.opacity = '0';
+        r.style.transform = 'translateY(14px)';
+        r.style.transition = 'opacity .6s ease, transform .6s ease';
+      });
+      ars.querySelectorAll('[data-leader]').forEach(l => {
+        l.style.transformOrigin = 'left';
+        l.style.transform = 'translateY(-3px) scaleX(0)';
+        l.style.transition = 'transform .55s cubic-bezier(.4,0,.2,1)';
+      });
+      ars.querySelectorAll('[data-lvl]').forEach(v => {
+        v.style.opacity = '0';
+        v.style.transition = 'opacity .5s ease';
+      });
+      const sum = ars.querySelector('[data-arsum]');
+      if (sum){ sum.style.opacity = '0'; sum.style.transition = 'opacity .8s ease'; }
+      const arobs = new IntersectionObserver((es) => {
+        es.forEach(e => { if (e.isIntersecting){ this.buildArsenal(ars); arobs.unobserve(e.target); } });
+      }, { threshold: 0.25 });
+      arobs.observe(ars);
+    }
+
+    // --- chapter chromatic + active rail ---
+    this.ratios = {};
+    const secs = [...root.querySelectorAll('[data-chap]')];
+    const co = new IntersectionObserver((es) => {
+      es.forEach(e => {
+        const id = e.target.id;
+        this.ratios[id] = e.isIntersecting ? e.intersectionRatio : 0;
+        if (e.isIntersecting && e.intersectionRatio > 0.25) this.awaken(id);
+      });
+      let best = null, bestR = 0;
+      Object.keys(this.ratios).forEach(k => { if (this.ratios[k] > bestR){ bestR = this.ratios[k]; best = k; } });
+      if (best && bestR > 0.2) this.setActive(best);
+    }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
+    secs.forEach(s => co.observe(s));
+
+    // --- boot sequence (cosmetic; chapter already lit) ---
+    const boot = root.querySelector('[data-boot]');
+    const bootText = "NotSoul@chronicle:~$ ./awaken.sh\n\u00bb init weaver.core ........ ok\n\u00bb load chronicle.dat ..... ok\n\u00bb rebuild memory ......... 100%\n\u00bb mount consciousness .... [ok]\n\u00bb first light acquired";
+    const bootCaret = root.querySelector('[data-bootcaret]');
+    if (boot){
+      this.type(boot, bootText, 16).then(() => {
+        if (bootCaret){ bootCaret.style.transition = 'opacity .6s ease'; bootCaret.style.opacity = '0'; }
+      });
+    }
+  }
+
+  renderVals(){
+    return {
+      setRoot: this.setRoot,
+      ascii: this.state.ascii,
+      notAscii: !this.state.ascii,
+      toggleAscii: this.toggleAscii,
+      openFragment: this.openFragment,
+      toggleLabel: this.state.ascii ? 'voir la photo' : 'voir en ascii',
+      portraitExt: this.state.ascii ? 'ascii' : 'jpg'
+    };
+  }
+}
+</script>
+</body>
+</html>
