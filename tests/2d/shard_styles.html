@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prototype — Éclat d'âme, styles 2D</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-page: #040507;
+            --bg-panel: #070a0f;
+            --text-title: #eaeef2;
+            --text-prose: #9aa1a8;
+            --text-label: #5b626b;
+            --border: rgba(120, 150, 190, .16);
+            --gold: #f5c46a;
+            --pink: #ff7ab8;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 2.5rem 1rem 4rem;
+            background: var(--bg-page);
+            color: var(--text-prose);
+            font-family: 'JetBrains Mono', ui-monospace, monospace;
+        }
+
+        header {
+            max-width: 1100px;
+            margin: 0 auto 1.25rem;
+        }
+
+        h1 {
+            margin: 0;
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-weight: normal;
+            font-size: clamp(36px, 6vw, 56px);
+            color: var(--text-title);
+        }
+
+        header p { margin: .4rem 0 0; font-size: 12px; color: var(--text-label); }
+
+        button {
+            padding: .6em 1.1em;
+            border: 1px solid rgba(120, 150, 190, .25);
+            background: rgba(7, 10, 15, .6);
+            color: #c2c8ce;
+            font: inherit;
+            font-size: 11px;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        button:hover,
+        button:focus-visible { border-color: var(--gold); color: var(--gold); }
+
+        /* ===== Barre d'options globale ===== */
+        .toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            max-width: 1100px;
+            margin: 0 auto 1.5rem;
+            padding: .9rem 1rem;
+            border: 1px solid var(--border);
+            background: rgba(7, 10, 15, .92);
+            backdrop-filter: blur(6px);
+            display: flex;
+            flex-direction: column;
+            gap: .8rem;
+        }
+
+        .toolbar__row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: .8rem 1.4rem;
+        }
+
+        .timeline {
+            flex: 1;
+            min-width: 220px;
+            display: flex;
+            align-items: center;
+            gap: .8rem;
+        }
+
+        .timeline input { flex: 1; }
+        .timeline output { min-width: 13ch; font-size: 11px; color: var(--gold); }
+
+        .ctl {
+            display: flex;
+            align-items: center;
+            gap: .5em;
+            font-size: 10px;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--text-label);
+        }
+
+        .ctl output { min-width: 3.5ch; color: #c2c8ce; letter-spacing: 0; }
+
+        select {
+            padding: .3em .4em;
+            border: 1px solid rgba(120, 150, 190, .25);
+            background: var(--bg-page);
+            color: #c2c8ce;
+            font: inherit;
+            font-size: 11px;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+
+        input[type="range"] { accent-color: var(--gold); width: 90px; }
+        .timeline input[type="range"] { width: auto; }
+        input[type="checkbox"] { accent-color: var(--gold); margin: 0; }
+
+        /* ===== Cartes ===== */
+        .grid {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+            gap: 1.25rem;
+        }
+
+        .card {
+            border: 1px solid var(--border);
+            background: var(--bg-panel);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card canvas {
+            display: block;
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            background: var(--bg-page);
+            cursor: pointer;
+        }
+
+        .card__body {
+            padding: 1rem 1.1rem 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: .6rem;
+            flex: 1;
+        }
+
+        .card h2 {
+            margin: 0;
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-weight: normal;
+            font-size: 26px;
+            color: var(--text-title);
+        }
+
+        .card h2 span {
+            font-family: 'JetBrains Mono', monospace;
+            font-style: normal;
+            font-size: 11px;
+            color: var(--text-label);
+            margin-right: .6em;
+        }
+
+        .card p { margin: 0; font-size: 12px; line-height: 1.6; }
+        .card .tech { color: var(--text-label); }
+
+        .card .opts {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .5rem 1rem;
+            padding-top: .6rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .card button { align-self: flex-start; margin-top: auto; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Éclat d'âme — styles 2D</h1>
+        <p>Même séquence pour chaque style : le fil descend, entre dans l'éclat, fissures, dissolution en fumée d'or. Cliquer une image pour la lancer · Espace : pause.</p>
+    </header>
+
+    <section class="toolbar" aria-label="Options">
+        <div class="toolbar__row">
+            <button id="play-all" type="button">Tout lancer</button>
+            <button id="pause" type="button">Pause</button>
+            <div class="timeline">
+                <input id="scrub" type="range" min="0" max="9" step="0.01" value="0" aria-label="Position dans la séquence">
+                <output id="scrub-out">0.00 s · repos</output>
+            </div>
+        </div>
+        <div class="toolbar__row">
+            <label class="ctl">Vitesse
+                <select id="opt-speed">
+                    <option value="0.25">×0.25</option>
+                    <option value="0.5">×0.5</option>
+                    <option value="1" selected>×1</option>
+                    <option value="1.5">×1.5</option>
+                    <option value="2">×2</option>
+                </select>
+            </label>
+            <label class="ctl">Fin
+                <select id="opt-end">
+                    <option value="rest" selected>Revenir au repos</option>
+                    <option value="loop">Rejouer en boucle</option>
+                    <option value="hold">Rester dissous</option>
+                </select>
+            </label>
+            <label class="ctl">Taille <input id="opt-size" type="range" min="0.22" max="0.4" step="0.01" value="0.34"><output>0.34</output></label>
+            <label class="ctl">Lueur <input id="opt-glow" type="range" min="0" max="2" step="0.05" value="1"><output>1.00</output></label>
+            <label class="ctl">Fumée <input id="opt-smoke" type="range" min="0" max="1" step="0.05" value="0.7"><output>0.70</output></label>
+            <label class="ctl"><input id="opt-sway" type="checkbox" checked> Fil ondulant</label>
+        </div>
+    </section>
+
+    <main class="grid" id="grid"></main>
+
+    <script>
+        // ===== Options globales =====
+
+        const OPT = { speed: 1, end: 'rest', size: .34, glow: 1, smoke: .7, sway: true };
+        const CY = .56; // centre vertical de l'éclat (fraction de la hauteur)
+
+
+        // ===== Données communes =====
+
+        // Silhouette vue de face (unités : la pointe haute est en y = -1, la basse en y = 1).
+        // Proportions de la version 3D : prisme court au milieu, longues pyramides.
+        // `tone` : luminosité propre de chaque facette (pas d'éclairage, pas de reflet).
+        const W0 = .34, W1 = .17, Y0 = -.23, Y1 = .25;
+        const FACES = [
+            { pts: [[0, -1], [-W0, Y0], [-W1, Y0]], tone: .62 },
+            { pts: [[0, -1], [-W1, Y0], [W1, Y0]], tone: .8 },
+            { pts: [[0, -1], [W1, Y0], [W0, Y0]], tone: .92 },
+            { pts: [[-W0, Y0], [-W1, Y0], [-W1, Y1], [-W0, Y1]], tone: .58 },
+            { pts: [[-W1, Y0], [W1, Y0], [W1, Y1], [-W1, Y1]], tone: .76 },
+            { pts: [[W1, Y0], [W0, Y0], [W0, Y1], [W1, Y1]], tone: .88 },
+            { pts: [[-W0, Y1], [-W1, Y1], [0, 1]], tone: .5 },
+            { pts: [[-W1, Y1], [W1, Y1], [0, 1]], tone: .68 },
+            { pts: [[W1, Y1], [W0, Y1], [0, 1]], tone: .8 },
+        ];
+        const OUTLINE = [[0, -1], [W0, Y0], [W0, Y1], [0, 1], [-W0, Y1], [-W0, Y0]];
+        const EDGES = [];
+        for (const f of FACES) f.pts.forEach((p, i) => EDGES.push([p, f.pts[(i + 1) % f.pts.length]]));
+
+        const clamp = (x, a = 0, b = 1) => Math.min(Math.max(x, a), b);
+        const mix = (a, b, t) => a + (b - a) * t;
+        const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+        const hash = (x, y) => { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); };
+        const seeded = seed => { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; };
+
+        function inPoly(x, y, pts) {
+            let inside = false;
+            for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+                const [xi, yi] = pts[i], [xj, yj] = pts[j];
+                if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+            }
+            return inside;
+        }
+        const faceAt = (x, y) => {
+            if (y < -1 || y > 1 || Math.abs(x) > W0) return -1;
+            for (let i = 0; i < FACES.length; i++) if (inPoly(x, y, FACES[i].pts)) return i;
+            return -1;
+        };
+
+        // Luminosité d'un point de l'éclat : teinte de la facette + cœur lumineux
+        function tone(x, y, fi) {
+            const core = Math.exp(-(x * x * 7 + y * y * 1.6));
+            return clamp(.3 + FACES[fi].tone * .45 + core * .4, 0, 1.15);
+        }
+
+        // Seuil de dissolution d'un point (le point disparaît quand `dissolve` le dépasse).
+        // « grain » : du haut vers le bas avec du bruit · « front » : ligne nette qui descend.
+        const DISSOLVE = {
+            grain: (x, y) => (y + 1) / 2 * .55 + hash(x * 13.1, y * 7.7) * .45,
+            front: (x, y) => (y + 1) / 2.15,
+        };
+        const dissolveAt = DISSOLVE.grain;
+
+        // Fissures : marches aléatoires depuis la pointe, qui restent dans l'éclat
+        function makeCracks(seed) {
+            const rnd = seeded(seed);
+            const segs = [];
+            const walk = (x, y, dir, depth) => {
+                for (let i = 0; i < 14; i++) {
+                    const nx = x + (rnd() - .5) * .14 + dir * .04, ny = y + .07 + rnd() * .08;
+                    if (faceAt(nx, ny) < 0) break;
+                    segs.push({ a: [x, y], b: [nx, ny] });
+                    if (depth < 2 && rnd() < .18) walk(nx, ny, rnd() < .5 ? -1 : 1, depth + 1);
+                    x = nx; y = ny;
+                }
+            };
+            for (const d of [-1, -.4, .3, 1]) walk(0, -.99, d, 0);
+            return segs;
+        }
+
+        // Partie visible des fissures : elles poussent depuis la pointe, segment coupé au front
+        function visibleCracks(segs, crack) {
+            if (crack <= 0) return [];
+            const front = -1 + crack * 2.1, out = [];
+            for (const s of segs) {
+                if (s.a[1] >= front) continue;
+                if (s.b[1] <= front) { out.push(s); continue; }
+                const t = (front - s.a[1]) / (s.b[1] - s.a[1]);
+                out.push({ a: s.a, b: [mix(s.a[0], s.b[0], t), front] });
+            }
+            return out;
+        }
+
+        // Fil du lecteur : descend du haut en ondulant, puis continue dans l'éclat jusqu'au centre.
+        // Le tracé est fixe pendant l'entrée : le fil glisse le long de son propre chemin.
+        function threadPoint(s, phase) {
+            if (s > 1) return [0, -1 + clamp((s - 1) / .4) * .95];
+            const env = Math.pow(1 - s, 1.1);
+            return [Math.sin(s * Math.PI * 2.2 + .5 + phase) * .5 * env, mix(-2.15, -1, s)];
+        }
+
+
+        // ===== Séquence (identique pour tous les styles), en secondes =====
+
+        const TL = {
+            thread: [.6, 2.2],     // le fil descend
+            enter: [2.2, 3.1],     // il entre dans l'éclat
+            crack: [2.3, 3.2],     // fissures depuis la pointe
+            dissolve: [3.1, 4.9],  // l'éclat se dissout en or
+            smoke: [6.6, 8.8],     // la fumée s'éteint
+        };
+        const END = 9;
+
+        function sequence(T) {
+            const tp = smooth(...TL.thread, T);
+            const enter = smooth(...TL.enter, T);
+            return {
+                tail: enter,
+                head: tp + enter * .4,
+                crack: smooth(...TL.crack, T),
+                dissolve: smooth(...TL.dissolve, T),
+                smoke: 1 - smooth(...TL.smoke, T),
+            };
+        }
+
+        const phaseName = T =>
+            T < TL.thread[0] ? 'repos' : T < TL.enter[0] ? 'fil' : T < TL.dissolve[0] ? 'entrée' : T < TL.dissolve[1] ? 'dissolution' : T < TL.smoke[1] ? 'fumée' : 'fin';
+
+
+        // ===== Fumée : particules calculées à partir du temps (pas de simulation) =====
+        // Chaque particule naît à l'endroit et à l'instant où l'éclat se dissout,
+        // donc la fumée colle à la dissolution et on peut avancer/reculer dans le temps.
+
+        const POOL = 600, DRAG = 1.2, RISE = -.22;
+        const invSmooth = y => .5 - Math.sin(Math.asin(1 - 2 * clamp(y)) / 3);
+
+        function makePool(seed, thresholdAt) {
+            const rnd = seeded(seed), pool = [];
+            while (pool.length < POOL) {
+                const x = (rnd() * 2 - 1) * W0, y = rnd() * 2 - 1;
+                if (faceAt(x, y) < 0) continue;
+                const a = rnd() * Math.PI * 2, sp = .1 + rnd() * .35;
+                pool.push({
+                    x, y,
+                    vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - .15,
+                    life: 2.2 + rnd() * 2.4, size: .5 + rnd(), seed: rnd() * 10,
+                    born: mix(...TL.dissolve, invSmooth(thresholdAt(x, y))),
+                });
+            }
+            return pool;
+        }
+
+        function particlesAt(pool, T) {
+            const out = [], n = Math.round(pool.length * OPT.smoke), term = RISE / DRAG;
+            for (let i = 0; i < n; i++) {
+                const p = pool[i], age = T - p.born;
+                if (age < 0 || age > p.life) continue;
+                const e = Math.exp(-DRAG * age), d = (1 - e) / DRAG;
+                const sw = Math.sin(age * .9 + p.seed);
+                out.push({
+                    x: p.x + p.vx * d + (sw - Math.sin(p.seed)) * .09,
+                    y: p.y + term * age + (p.vy - term) * d,
+                    vx: p.vx * e + Math.cos(age * .9 + p.seed) * .08,
+                    vy: term + (p.vy - term) * e,
+                    age, life: p.life, size: p.size,
+                });
+            }
+            return out;
+        }
+
+
+        // ===== Outils de dessin partagés =====
+
+        function line(x0, y0, x1, y1, plot) {
+            const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) | 0 || 1;
+            for (let i = 0; i <= n; i++) plot(mix(x0, x1, i / n), mix(y0, y1, i / n));
+        }
+
+        function distSeg(px, py, [ax, ay], [bx, by]) {
+            const dx = bx - ax, dy = by - ay;
+            const t = clamp(((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy || 1));
+            return Math.hypot(px - ax - t * dx, py - ay - t * dy);
+        }
+
+        // Matrice de Bayer n×n (n puissance de 2), seuils dans ]0, 1[
+        function bayer(n) {
+            let m = [[0]];
+            while (m.length < n) {
+                const s = m.length, r = [];
+                for (let y = 0; y < s * 2; y++) {
+                    r.push([]);
+                    for (let x = 0; x < s * 2; x++) r[y][x] = 4 * m[y % s][x % s] + [0, 2, 3, 1][(y < s ? 0 : 2) + (x < s ? 0 : 1)];
+                }
+                m = r;
+            }
+            return m.map(row => row.map(v => (v + .5) / (n * n)));
+        }
+        const BAYER4 = bayer(4);
+
+        // Points du fil (de la queue à la tête), en pixels d'un buffer W×H
+        function threadSamples(S, W, H, stepPx) {
+            const h = H * OPT.size, cy = H * CY, out = [];
+            if (S.head <= .002 || S.threadAlpha <= 0) return out;
+            const n = Math.max(2, Math.ceil((S.head - S.tail) * h * 3.2 / stepPx));
+            for (let i = 0; i <= n; i++) {
+                const s = mix(S.tail, S.head, i / n);
+                if (s > 1) break; // la partie entrée dans l'éclat est cachée
+                const [x, y] = threadPoint(s, S.phase);
+                out.push([W / 2 + x * h, cy + y * h]);
+            }
+            return out;
+        }
+
+        function drawThreadVector(ctx, S, W, H, h) {
+            const pts = threadSamples(S, W, H, 3);
+            if (pts.length < 2) return;
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+            const g = ctx.createLinearGradient(0, pts[0][1], 0, pts[0][1] + h * .4);
+            g.addColorStop(0, 'rgba(255,210,130,0)');
+            g.addColorStop(1, `rgba(255,214,140,${S.threadAlpha})`);
+            ctx.strokeStyle = g;
+            ctx.shadowColor = 'rgba(245,170,70,.9)'; ctx.shadowBlur = 8 * OPT.glow;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke();
+            if (S.head < 1) {
+                const [x, y] = pts[pts.length - 1];
+                ctx.fillStyle = '#fff3d6'; ctx.shadowBlur = 14 * OPT.glow;
+                ctx.beginPath(); ctx.arc(x, y, 2.4, 0, Math.PI * 2); ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        function drawCracksVector(ctx, S, W, h, cy) {
+            if (!S.cracks.length) return;
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.strokeStyle = 'rgba(255,226,160,.95)';
+            ctx.shadowColor = 'rgba(255,190,90,1)'; ctx.shadowBlur = 8 * OPT.glow;
+            ctx.lineWidth = 1.2; ctx.lineCap = 'round';
+            ctx.beginPath();
+            for (const s of S.cracks) {
+                ctx.moveTo(W / 2 + s.a[0] * h, cy + s.a[1] * h);
+                ctx.lineTo(W / 2 + s.b[0] * h, cy + s.b[1] * h);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawSmokeSoft(ctx, S, h, cx, cy) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (const p of S.particles) {
+                const u = p.age / p.life;
+                const x = cx + p.x * h, y = cy + p.y * h, r = h * (.08 + u * .22) * p.size;
+                const a = .1 * Math.sin(Math.PI * Math.min(u * 4, 1) / 2) * (1 - u) * S.smoke;
+                const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+                g.addColorStop(0, `rgba(255,190,90,${a})`);
+                g.addColorStop(1, 'rgba(255,160,50,0)');
+                ctx.fillStyle = g;
+                ctx.fillRect(x - r, y - r, r * 2, r * 2);
+            }
+            ctx.restore();
+        }
+
+        // Calque hors écran : on y dessine l'éclat déjà dissous, puis on le pose avec une lueur
+        // qui suit sa forme (sinon le halo est coupé net par la ligne de dissolution).
+        function layer(ctx, cache) {
+            const c = ctx.canvas;
+            if (!cache.off || cache.off.width !== c.width || cache.off.height !== c.height) {
+                cache.off = document.createElement('canvas');
+                cache.off.width = c.width; cache.off.height = c.height;
+            }
+            const o = cache.off.getContext('2d');
+            o.setTransform(1, 0, 0, 1, 0, 0);
+            o.globalCompositeOperation = 'source-over';
+            o.clearRect(0, 0, c.width, c.height);
+            o.setTransform(ctx.getTransform());
+            return o;
+        }
+        function stampLayer(ctx, cache, color, blur) {
+            const dpr = ctx.getTransform().a;
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            if (blur > 0) { ctx.shadowColor = color; ctx.shadowBlur = blur * dpr; }
+            ctx.drawImage(cache.off, 0, 0);
+            ctx.restore();
+        }
+
+        // Pose d'un pixel avec mélange alpha (dans un ImageData)
+        function blender(img, W, H) {
+            const d = img.data;
+            return (x, y, c, a = 1) => {
+                x |= 0; y |= 0;
+                if (x < 0 || y < 0 || x >= W || y >= H || a <= 0) return;
+                const i = (y * W + x) * 4;
+                d[i] += (c[0] - d[i]) * a; d[i + 1] += (c[1] - d[i + 1]) * a; d[i + 2] += (c[2] - d[i + 2]) * a;
+            };
+        }
+        function fillImage(img, c) {
+            const d = img.data;
+            for (let i = 0; i < d.length; i += 4) { d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255; }
+        }
+        function buffer(cache, key, w, h) {
+            if (!cache[key] || cache[key].width !== w || cache[key].height !== h) {
+                cache[key] = document.createElement('canvas');
+                cache[key].width = w; cache[key].height = h;
+            }
+            return cache[key];
+        }
+
+
+        // ===== Styles =====
+        // Chaque style a ses propres options (`options`), lues dans `o` au moment du dessin.
+
+        const STYLES = [];
+
+        // ---------- 1. ASCII ----------
+        const CHARSETS = { classic: ' .:-=+*#%@', blocks: ' ░▒▓█', dots: ' ·•●', binary: ' 01' };
+        STYLES.push({
+            name: 'ASCII', num: '01', mode: 'grain',
+            desc: "L'éclat est tissé de caractères, comme une fenêtre du Sortilège. Le fil, les fissures et la fumée sont aussi des caractères.",
+            tech: 'Canvas 2D, grille de texte monospace. Très léger, colle au thème terminal (./awaken.sh).',
+            options: [
+                { key: 'charset', label: 'Caractères', value: 'classic', choices: [['classic', '.:-=+*#%@'], ['blocks', '░▒▓█'], ['dots', '·•●'], ['binary', '01']] },
+                { key: 'cell', label: 'Grille', value: 6, choices: [[5, 'fine'], [6, 'moyenne'], [8, 'large'], [10, 'très large']] },
+                { key: 'contour', label: 'Contour / \\ |', type: 'bool', value: true },
+            ],
+            draw(ctx, W, H, S, cache, o) {
+                const cw = o.cell, ch = Math.round(cw * 1.67), h = H * OPT.size, cy = H * CY;
+                const RAMP = CHARSETS[o.charset];
+                const binary = o.charset === 'binary';
+                ctx.font = `${(cw * 1.6).toFixed(1)}px JetBrains Mono, monospace`;
+                ctx.textBaseline = 'middle';
+                ctx.textAlign = 'center';
+                const cellOf = (px, py) => [Math.floor(px / cw), Math.floor(py / ch)];
+                const centre = (c, r) => [c * cw + cw / 2, r * ch + ch / 2];
+
+                // Lueur douce derrière
+                const g = ctx.createRadialGradient(W / 2, cy, 0, W / 2, cy, h * 1.3);
+                g.addColorStop(0, `rgba(255,90,170,${.22 * OPT.glow * (1 - S.dissolve)})`);
+                g.addColorStop(1, 'rgba(255,90,170,0)');
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, W, H);
+
+                // Fil : une seule case par position de grille (sinon les caractères se superposent)
+                const thread = new Map();
+                const pts = threadSamples(S, W, H, ch * .5);
+                for (let i = 1; i < pts.length; i++) {
+                    const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
+                    const dx = x1 - x0, dy = y1 - y0;
+                    const [c, r] = cellOf(x1, y1);
+                    const tip = i === pts.length - 1 && S.head < 1;
+                    thread.set(c + ',' + r, {
+                        c, r,
+                        char: tip ? '*' : Math.abs(dx) < Math.abs(dy) * .45 ? '|' : dx * dy > 0 ? '\\' : '/',
+                        a: clamp(i / (pts.length * .25)) * S.threadAlpha,
+                    });
+                }
+
+                const cols = Math.ceil(W / cw), rows = Math.ceil(H / ch);
+                const r0 = Math.max(0, Math.floor((cy - h) / ch) - 1), r1 = Math.min(rows, Math.ceil((cy + h) / ch) + 1);
+                const ex = cw / h, ey = ch / h;
+                for (let r = r0; r < r1; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        const [px, py] = centre(c, r);
+                        const x = (px - W / 2) / h, y = (py - cy) / h;
+                        const fi = faceAt(x, y);
+                        if (fi < 0 || thread.has(c + ',' + r)) continue;
+                        const th = dissolveAt(x, y);
+                        if (S.dissolve > th) continue;
+                        const tv = clamp(tone(x, y, fi) + Math.sin(S.t * 1.3 + x * 9 + y * 5) * .04);
+
+                        const edge = o.contour && (faceAt(x - ex, y) < 0 || faceAt(x + ex, y) < 0 || faceAt(x, y - ey) < 0 || faceAt(x, y + ey) < 0);
+                        let char = edge ? (y < Y0 ? (x < 0 ? '/' : '\\') : y > Y1 ? (x < 0 ? '\\' : '/') : '|')
+                                 : binary ? (hash(c, r + Math.floor(S.t * 2)) < tv * .8 ? '1' : '0')
+                                 : RAMP[Math.round(tv * (RAMP.length - 1))];
+                        let color = `rgba(255,${Math.round(110 + tv * 90)},${Math.round(180 + tv * 50)},${.45 + tv * .5})`;
+
+                        if (S.cracks.some(s => distSeg(x, y, s.a, s.b) < ex * .4)) { char = '+'; color = 'rgba(255,224,160,1)'; }
+                        if (S.dissolve > 0 && S.dissolve > th - .08) { char = '*'; color = 'rgba(255,200,90,1)'; }
+                        ctx.fillStyle = color;
+                        ctx.fillText(char, px, py);
+                    }
+                }
+
+                for (const { c, r, char, a } of thread.values()) {
+                    const [px, py] = centre(c, r);
+                    ctx.fillStyle = `rgba(255,200,100,${a})`;
+                    ctx.fillText(char, px, py);
+                }
+
+                // Fumée : un caractère par case, le plus jeune l'emporte
+                const smoke = new Map();
+                for (const p of S.particles) {
+                    const [c, r] = cellOf(W / 2 + p.x * h, cy + p.y * h);
+                    const u = p.age / p.life, k = c + ',' + r;
+                    if (!smoke.has(k) || smoke.get(k).u > u) smoke.set(k, { c, r, u });
+                }
+                for (const { c, r, u } of smoke.values()) {
+                    const [px, py] = centre(c, r);
+                    ctx.fillStyle = `rgba(255,${Math.round(190 + u * 40)},${Math.round(90 + u * 60)},${(1 - u) * S.smoke})`;
+                    ctx.fillText('*+~°·.'[Math.min(5, Math.floor(u * 6))], px, py);
+                }
+            },
+        });
+
+        // ---------- 2. Pixel art ----------
+        const PINKS = [[74, 14, 52], [150, 36, 100], [212, 74, 150], [246, 124, 188], [255, 180, 220], [255, 228, 242]];
+        const GOLDS = [[110, 62, 10], [196, 124, 30], [255, 186, 70], [255, 232, 160]];
+        STYLES.push({
+            name: 'Pixel art', num: '02', mode: 'grain',
+            desc: 'Basse résolution, palette réduite, contour sombre. Aura tramée, étincelles en croix, dissolution pixel par pixel.',
+            tech: 'Buffer basse résolution (ImageData) agrandi sans lissage. Look rétro / jeu, très lisible même petit.',
+            options: [
+                { key: 'res', label: 'Résolution', value: 120, choices: [[80, '80×60'], [120, '120×90'], [180, '180×135']] },
+                { key: 'outline', label: 'Contour', type: 'bool', value: true },
+                { key: 'stars', label: 'Étoiles', type: 'bool', value: true },
+            ],
+            draw(ctx, W, H, S, cache, o) {
+                const PW = o.res, PH = o.res * 3 / 4, h = PH * OPT.size, cy = PH * CY;
+                const buf = buffer(cache, 'buf', PW, PH);
+                if (!cache.stars) cache.stars = Array.from({ length: 60 }, () => [Math.random(), Math.random(), Math.random() * 6]);
+                const bctx = buf.getContext('2d');
+                const img = bctx.createImageData(PW, PH);
+                fillImage(img, [4, 5, 7]);
+                const put = blender(img, PW, PH);
+
+                if (o.stars) for (const [x, y, s] of cache.stars) {
+                    const tw = Math.sin(S.t * 1.5 + s);
+                    if (tw > .2) put(x * PW, y * PH, [70, 80, 110], clamp((tw - .2) * 2.5));
+                }
+
+                for (let py = 0; py < PH; py++) {
+                    for (let px = 0; px < PW; px++) {
+                        const x = (px + .5 - PW / 2) / h, y = (py + .5 - cy) / h;
+                        const fi = faceAt(x, y);
+                        if (fi < 0) {
+                            // Aura tramée
+                            const aura = Math.exp(-(x * x * 2.2 + y * y * .7) * 1.6) * .55 * OPT.glow * (1 - S.dissolve);
+                            if (aura > .04 && aura > BAYER4[py % 4][px % 4]) put(px, py, [58, 10, 40]);
+                            continue;
+                        }
+                        const th = dissolveAt(x, y);
+                        if (S.dissolve > th) continue;
+                        if (S.dissolve > 0 && S.dissolve > th - .07) { put(px, py, GOLDS[3]); continue; }
+                        const edge = o.outline && (faceAt(x - 1 / h, y) < 0 || faceAt(x + 1 / h, y) < 0 || faceAt(x, y - 1 / h) < 0 || faceAt(x, y + 1 / h) < 0);
+                        put(px, py, edge ? PINKS[0] : PINKS[clamp(Math.round(tone(x, y, fi) * 4.4), 1, 5)]);
+                    }
+                }
+                // Fissures (seulement sur ce qui n'est pas encore dissous)
+                for (const s of S.cracks) line(s.a[0] * h + PW / 2, s.a[1] * h + cy, s.b[0] * h + PW / 2, s.b[1] * h + cy, (x, y) => {
+                    if (dissolveAt((x - PW / 2) / h, (y - cy) / h) > S.dissolve) put(x, y, GOLDS[3]);
+                });
+                // Étincelles en croix autour de l'éclat
+                const sparks = 1 - smooth(0, .4, S.dissolve);
+                if (sparks > 0) for (let k = 0; k < 3; k++) {
+                    const tw = Math.sin(S.t * 1.7 + k * 2.1);
+                    if (tw < .6) continue;
+                    const a = sparks * clamp((tw - .6) * 4), sx = PW / 2 + Math.sin(k * 4.7) * h * .55, sy = cy + Math.cos(k * 3.1) * h * .7;
+                    put(sx, sy, PINKS[5], a);
+                    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) put(sx + dx, sy + dy, PINKS[3], a);
+                }
+                // Fil
+                const pts = threadSamples(S, PW, PH, .8);
+                pts.forEach(([x, y], i) => put(x, y, i > pts.length - 3 && S.head < 1 ? GOLDS[3] : GOLDS[2], clamp(i / (pts.length * .25)) * S.threadAlpha));
+                // Fumée en pixels
+                for (const p of S.particles) {
+                    const u = p.age / p.life;
+                    const c = GOLDS[clamp(3 - Math.floor(u * 4), 0, 3)];
+                    const x = PW / 2 + p.x * h, y = cy + p.y * h, a = (1 - u) * S.smoke;
+                    put(x, y, c, a);
+                    if (p.size > 1 && u < .5) put(x + 1, y, c, a);
+                }
+                bctx.putImageData(img, 0, 0);
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(buf, 0, 0, W, H);
+            },
+        });
+
+        // ---------- 3. Tramage 1-bit ----------
+        const DITHER_PALETTES = {
+            night: { bg: [4, 5, 7], pink: [255, 122, 184], gold: [245, 196, 106] },
+            paper: { bg: [226, 216, 196], pink: [176, 40, 104], gold: [150, 96, 20] },
+        };
+        STYLES.push({
+            name: 'Tramage 1-bit', num: '03', mode: 'grain',
+            desc: "Trois couleurs pures (noir, rose, or) et une trame ordonnée : volume et lueur rendus uniquement par la densité des points.",
+            tech: 'Buffer basse résolution, matrice de Bayer. Fumée = champ de densité flouté puis tramé. Style gravure / Obra Dinn.',
+            options: [
+                { key: 'matrix', label: 'Trame', value: 4, choices: [[2, 'Bayer 2×2'], [4, 'Bayer 4×4'], [8, 'Bayer 8×8']] },
+                { key: 'res', label: 'Résolution', value: 240, choices: [[160, '160×120'], [240, '240×180'], [320, '320×240']] },
+                { key: 'palette', label: 'Palette', value: 'night', choices: [['night', 'Nuit'], ['paper', 'Papier']] },
+            ],
+            draw(ctx, W, H, S, cache, o) {
+                const DW = o.res, DH = o.res * 3 / 4, h = DH * OPT.size, cy = DH * CY;
+                const { bg: BG, pink: PINK, gold: GOLD } = DITHER_PALETTES[o.palette];
+                if (cache.matrixN !== o.matrix) { cache.matrix = bayer(o.matrix); cache.matrixN = o.matrix; }
+                const M = cache.matrix, n = o.matrix;
+                const buf = buffer(cache, 'buf', DW, DH);
+                const smk = buffer(cache, 'smoke', DW / 2, DH / 2);
+
+                // Densité de fumée (taches floues, demi-résolution)
+                const sctx = smk.getContext('2d');
+                sctx.globalCompositeOperation = 'source-over';
+                sctx.fillStyle = '#000';
+                sctx.fillRect(0, 0, DW / 2, DH / 2);
+                sctx.globalCompositeOperation = 'lighter';
+                for (const p of S.particles) {
+                    const u = p.age / p.life;
+                    const x = (DW / 2 + p.x * h) / 2, y = (cy + p.y * h) / 2, r = (2 + u * 7) * p.size * DW / 240;
+                    const a = .15 * Math.min(u * 6, 1) * (1 - u) * S.smoke;
+                    const g = sctx.createRadialGradient(x, y, 0, x, y, r);
+                    g.addColorStop(0, `rgba(255,255,255,${a})`);
+                    g.addColorStop(1, 'rgba(255,255,255,0)');
+                    sctx.fillStyle = g;
+                    sctx.fillRect(x - r, y - r, r * 2, r * 2);
+                }
+                const sm = sctx.getImageData(0, 0, DW / 2, DH / 2).data;
+
+                const bctx = buf.getContext('2d');
+                const img = bctx.createImageData(DW, DH);
+                const d = img.data;
+                for (let py = 0; py < DH; py++) {
+                    for (let px = 0; px < DW; px++) {
+                        const x = (px + .5 - DW / 2) / h, y = (py + .5 - cy) / h;
+                        const b = M[py % n][px % n];
+                        const fi = faceAt(x, y);
+                        let ip = 0, ig = sm[((py >> 1) * (DW / 2) + (px >> 1)) * 4] / 255;
+                        if (fi >= 0) {
+                            const th = dissolveAt(x, y);
+                            const keep = 1 - smooth(th - .08, th, S.dissolve);
+                            ip = tone(x, y, fi) * .95 * keep;
+                            if (S.dissolve > 0) ig += smooth(th - .14, th - .04, S.dissolve) * keep * 1.2;
+                        } else {
+                            ip = Math.exp(-(x * x * 2.2 + y * y * .7) * 1.7) * .32 * OPT.glow * (1 - S.dissolve);
+                        }
+                        const c = ig > b ? GOLD : ip > b ? PINK : BG;
+                        const i = (py * DW + px) * 4;
+                        d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = 255;
+                    }
+                }
+                const put = blender(img, DW, DH);
+                for (const s of S.cracks) line(s.a[0] * h + DW / 2, s.a[1] * h + cy, s.b[0] * h + DW / 2, s.b[1] * h + cy, (x, y) => {
+                    if (dissolveAt((x - DW / 2) / h, (y - cy) / h) > S.dissolve) put(x, y, GOLD);
+                });
+                // Fil : densité de points stable (liée à la position, pas au hasard de chaque image)
+                const pts = threadSamples(S, DW, DH, .7);
+                pts.forEach(([x, y], i) => { if (hash(x | 0, y | 0) < clamp(i / (pts.length * .3)) * S.threadAlpha) put(x, y, GOLD); });
+                bctx.putImageData(img, 0, 0);
+                ctx.imageSmoothingEnabled = false;
+                ctx.drawImage(buf, 0, 0, W, H);
+            },
+        });
+
+        // ---------- 4. Vectoriel à facettes plates ----------
+        STYLES.push({
+            name: 'Facettes plates', num: '04', mode: 'front',
+            desc: "Illustration vectorielle : facettes en aplats dégradés, arêtes fines, lueur douce. Un front d'or descend et dissout l'éclat.",
+            tech: 'Canvas 2D (chemins + dégradés + ombre portée en lueur). Net à toute taille, facile à porter en SVG.',
+            options: [
+                { key: 'edges', label: 'Arêtes', type: 'bool', value: true },
+                { key: 'core', label: 'Cœur lumineux', type: 'bool', value: true },
+            ],
+            draw(ctx, W, H, S, cache, o) {
+                const h = H * OPT.size, cy = H * CY;
+                const P = ([x, y]) => [W / 2 + x * h, cy + y * h];
+                const front = -1 + S.dissolve * 2.15;
+
+                const l = layer(ctx, cache);
+                const path = pts => { l.beginPath(); pts.forEach((p, i) => { const [x, y] = P(p); i ? l.lineTo(x, y) : l.moveTo(x, y); }); l.closePath(); };
+                l.save();
+                l.beginPath(); l.rect(0, cy + front * h, W, H); l.clip(); // ce qui est au-dessus du front a disparu
+                FACES.forEach(f => {
+                    path(f.pts);
+                    const [, y0] = P([0, Math.min(...f.pts.map(p => p[1]))]), [, y1] = P([0, Math.max(...f.pts.map(p => p[1]))]);
+                    const g = l.createLinearGradient(0, y0, 0, y1);
+                    const lum = 62 + f.tone * 18;
+                    g.addColorStop(0, `hsl(330 95% ${lum + 6}%)`);
+                    g.addColorStop(1, `hsl(328 85% ${lum - 6}%)`);
+                    l.fillStyle = g;
+                    l.fill();
+                    if (o.edges) { l.strokeStyle = 'rgba(255,225,242,.55)'; l.lineWidth = 1; l.stroke(); }
+                });
+                if (o.core) {
+                    const cg = l.createRadialGradient(W / 2, cy, 0, W / 2, cy, h * .5);
+                    cg.addColorStop(0, 'rgba(255,240,250,.55)');
+                    cg.addColorStop(1, 'rgba(255,240,250,0)');
+                    path(OUTLINE); l.save(); l.clip(); l.fillStyle = cg; l.fillRect(0, 0, W, H); l.restore();
+                }
+                drawCracksVector(l, S, W, h, cy);
+                l.restore();
+                stampLayer(ctx, cache, 'rgba(255,100,180,.75)', h * .3 * OPT.glow);
+
+                // Front de dissolution doré
+                if (S.dissolve > 0 && S.dissolve < 1) {
+                    ctx.save();
+                    ctx.beginPath(); OUTLINE.forEach((p, i) => { const [x, y] = P(p); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.closePath();
+                    ctx.clip();
+                    const fy = cy + front * h;
+                    const g = ctx.createLinearGradient(0, fy - 10, 0, fy + 14);
+                    g.addColorStop(0, 'rgba(255,210,120,0)'); g.addColorStop(.4, 'rgba(255,220,140,.95)'); g.addColorStop(1, 'rgba(255,180,60,0)');
+                    ctx.fillStyle = g; ctx.fillRect(0, fy - 10, W, 24);
+                    ctx.restore();
+                }
+                drawThreadVector(ctx, S, W, H, h);
+                drawSmokeSoft(ctx, S, h, W / 2, cy);
+            },
+        });
+
+        // ---------- 5. Néon au trait ----------
+        STYLES.push({
+            name: 'Néon au trait', num: '05', mode: 'front',
+            desc: "Uniquement des lignes lumineuses : le contour et les arêtes en néon rose, un cœur diffus. La fumée devient des volutes de traits dorés.",
+            tech: 'Canvas 2D, traits + lueur. Minimal, élégant, cohérent avec le fil (lui aussi une ligne).',
+            options: [
+                { key: 'width', label: 'Trait', value: 1.8, choices: [[1, 'fin'], [1.8, 'moyen'], [3, 'épais']] },
+                { key: 'inner', label: 'Arêtes internes', type: 'bool', value: true },
+            ],
+            draw(ctx, W, H, S, cache, o) {
+                const h = H * OPT.size, cy = H * CY;
+                const P = ([x, y]) => [W / 2 + x * h, cy + y * h];
+                const front = -1 + S.dissolve * 2.15;
+
+                // Halo autour (s'éteint avec la dissolution, sans coupure)
+                const hg = ctx.createRadialGradient(W / 2, cy, 0, W / 2, cy, h * 1.1);
+                hg.addColorStop(0, `rgba(255,110,185,${.16 * OPT.glow * (1 - S.dissolve)})`);
+                hg.addColorStop(1, 'rgba(255,110,185,0)');
+                ctx.fillStyle = hg; ctx.fillRect(0, 0, W, H);
+
+                const l = layer(ctx, cache);
+                const outline = () => { l.beginPath(); OUTLINE.forEach((p, i) => { const [x, y] = P(p); i ? l.lineTo(x, y) : l.moveTo(x, y); }); l.closePath(); };
+                l.save();
+                l.beginPath(); l.rect(0, cy + front * h, W, H); l.clip();
+                // Cœur diffus, limité à l'intérieur de l'éclat
+                l.save(); outline(); l.clip();
+                const cg = l.createRadialGradient(W / 2, cy, 0, W / 2, cy, h * .7);
+                cg.addColorStop(0, 'rgba(255,110,185,.35)');
+                cg.addColorStop(1, 'rgba(255,110,185,0)');
+                l.fillStyle = cg; l.fillRect(0, 0, W, H);
+                l.restore();
+                l.lineJoin = 'round'; l.lineCap = 'round';
+                if (o.inner) {
+                    l.strokeStyle = 'rgba(255,150,205,.5)';
+                    l.lineWidth = o.width * .55;
+                    l.beginPath();
+                    for (const [a, b] of EDGES) { const [x0, y0] = P(a), [x1, y1] = P(b); l.moveTo(x0, y0); l.lineTo(x1, y1); }
+                    l.stroke();
+                }
+                l.strokeStyle = 'rgba(255,200,230,.95)';
+                l.lineWidth = o.width;
+                outline(); l.stroke();
+                drawCracksVector(l, S, W, h, cy);
+                l.restore();
+                stampLayer(ctx, cache, 'rgba(255,90,175,.95)', 14 * OPT.glow);
+                if (OPT.glow > 1) stampLayer(ctx, cache, 'rgba(255,90,175,.6)', 30 * (OPT.glow - 1));
+
+                drawThreadVector(ctx, S, W, H, h);
+                // Volutes : petits traits dorés dans le sens du mouvement
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.lineWidth = 1; ctx.lineCap = 'round';
+                ctx.shadowColor = 'rgba(245,170,70,.9)'; ctx.shadowBlur = 6 * OPT.glow;
+                for (const p of S.particles) {
+                    const u = p.age / p.life;
+                    const [x, y] = P([p.x, p.y]);
+                    ctx.strokeStyle = `rgba(255,205,120,${Math.min(u * 6, 1) * (1 - u) * .8 * S.smoke})`;
+                    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - p.vx * h * .25, y - p.vy * h * .25); ctx.stroke();
+                }
+                ctx.restore();
+            },
+        });
+
+
+        // ===== Cartes =====
+
+        const grid = document.querySelector('#grid');
+        const cards = STYLES.map((style, i) => {
+            const el = document.createElement('article');
+            el.className = 'card';
+            el.innerHTML = `
+                <canvas aria-label="Prototype ${style.name}"></canvas>
+                <div class="card__body">
+                    <h2><span>${style.num}</span>${style.name}</h2>
+                    <p>${style.desc}</p>
+                    <p class="tech">${style.tech}</p>
+                    <div class="opts"></div>
+                    <button type="button">Lancer</button>
+                </div>`;
+            grid.append(el);
+            const card = {
+                style, el,
+                canvas: el.querySelector('canvas'),
+                cache: {},
+                opts: {},
+                cracks: makeCracks(1234 + i * 77),
+                pool: makePool(99 + i * 31, DISSOLVE[style.mode]),
+                time: 0,         // temps dans la séquence
+                active: false,   // la séquence avance
+                fadeAt: -99,     // retour au repos : l'éclat réapparaît en fondu
+            };
+
+            // Options propres au style
+            const opts = el.querySelector('.opts');
+            for (const o of style.options) {
+                card.opts[o.key] = o.value;
+                const lab = document.createElement('label');
+                lab.className = 'ctl';
+                if (o.type === 'bool') {
+                    lab.innerHTML = `<input type="checkbox" ${o.value ? 'checked' : ''}> ${o.label}`;
+                    lab.querySelector('input').addEventListener('change', e => { card.opts[o.key] = e.target.checked; });
+                } else {
+                    lab.innerHTML = `${o.label} <select>${o.choices.map(([v, t], k) => `<option value="${k}" ${v === o.value ? 'selected' : ''}>${t}</option>`).join('')}</select>`;
+                    lab.querySelector('select').addEventListener('change', e => { card.opts[o.key] = o.choices[+e.target.value][0]; });
+                }
+                opts.append(lab);
+            }
+
+            card.play = () => { card.time = 0; card.active = true; card.fadeAt = -99; setPaused(false); };
+            el.querySelector('button').addEventListener('click', card.play);
+            card.canvas.addEventListener('click', card.play);
+            return card;
+        });
+
+
+        // ===== Barre d'options =====
+
+        const $ = s => document.querySelector(s);
+        let paused = false, scrubbing = false;
+
+        function setPaused(p) {
+            paused = p;
+            $('#pause').textContent = p ? 'Reprendre' : 'Pause';
+        }
+
+        $('#play-all').addEventListener('click', () => cards.forEach(c => c.play()));
+        $('#pause').addEventListener('click', () => setPaused(!paused));
+        addEventListener('keydown', e => {
+            if (e.code !== 'Space' || e.target.closest('select, input, button')) return;
+            e.preventDefault();
+            setPaused(!paused);
+        });
+
+        // Timeline : déplace toutes les cartes au même instant et met en pause
+        const scrub = $('#scrub');
+        scrub.addEventListener('input', () => {
+            scrubbing = true;
+            setPaused(true);
+            for (const c of cards) { c.time = +scrub.value; c.active = true; c.fadeAt = -99; }
+        });
+        scrub.addEventListener('change', () => { scrubbing = false; });
+
+        $('#opt-speed').addEventListener('change', e => { OPT.speed = +e.target.value; });
+        $('#opt-end').addEventListener('change', e => { OPT.end = e.target.value; });
+        $('#opt-sway').addEventListener('change', e => { OPT.sway = e.target.checked; });
+        for (const key of ['size', 'glow', 'smoke']) {
+            const input = $('#opt-' + key), out = input.nextElementSibling;
+            input.addEventListener('input', () => { OPT[key] = +input.value; out.textContent = (+input.value).toFixed(2); });
+        }
+
+
+        // ===== Boucle =====
+
+        function resize() {
+            const dpr = Math.min(devicePixelRatio, 2);
+            for (const c of cards) {
+                c.canvas.width = Math.round(c.canvas.clientWidth * dpr);
+                c.canvas.height = Math.round(c.canvas.clientHeight * dpr);
+                c.dpr = dpr;
+            }
+        }
+        addEventListener('resize', resize);
+        resize();
+        document.fonts.ready.then(resize);
+
+        function finish(c) {
+            if (OPT.end === 'hold') { c.time = END; c.active = false; return; }
+            c.time = 0;
+            c.active = OPT.end === 'loop';
+            c.fadeAt = clock;
+        }
+
+        function render(c) {
+            const T = c.time;
+            const seq = sequence(T);
+            const S = {
+                ...seq, T, t: clock,
+                phase: OPT.sway ? T * .4 : 0,
+                cracks: visibleCracks(c.cracks, seq.crack),
+                particles: particlesAt(c.pool, T),
+                threadAlpha: 1 - smooth(.95, 1, seq.tail),
+            };
+            const ctx = c.canvas.getContext('2d');
+            const W = c.canvas.width / c.dpr, H = c.canvas.height / c.dpr;
+            ctx.setTransform(c.dpr, 0, 0, c.dpr, 0, 0);
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.globalAlpha = 1;
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#040507';
+            ctx.fillRect(0, 0, W, H);
+            c.style.draw(ctx, W, H, S, c.cache, c.opts);
+
+            // Retour au repos : l'éclat réapparaît doucement au lieu de surgir
+            const fade = 1 - smooth(0, .9, clock - c.fadeAt);
+            if (fade > 0) {
+                ctx.fillStyle = `rgba(4,5,7,${fade})`;
+                ctx.fillRect(0, 0, W, H);
+            }
+        }
+
+        let clock = 0, last = performance.now() / 1000;
+        function frame() {
+            const now = performance.now() / 1000;
+            const dt = Math.min(now - last, .05);
+            last = now;
+            if (!paused) {
+                clock += dt;
+                for (const c of cards) if (c.active) {
+                    c.time += dt * OPT.speed;
+                    if (c.time >= END) finish(c);
+                }
+            }
+            for (const c of cards) render(c);
+
+            if (!scrubbing) {
+                const T = Math.max(...cards.map(c => c.active || c.time >= END ? c.time : 0));
+                scrub.value = T;
+            }
+            $('#scrub-out').textContent = `${(+scrub.value).toFixed(2)} s · ${phaseName(+scrub.value)}`;
+            requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+    </script>
+</body>
+</html>

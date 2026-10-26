@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prototype — Éclat d'âme (2D)</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+
+    <style>
+        /* Tokens repris de style.scss */
+        :root {
+            --bg-page: #040507;
+            --text-label: #5b626b;
+            --gold: #f5c46a;
+            --c1: #4fa9ff;
+        }
+
+        * { box-sizing: border-box; }
+
+        html { scrollbar-gutter: stable; }
+
+        html, body {
+            margin: 0;
+            background: var(--bg-page);
+            color: #9aa1a8;
+            font-family: 'JetBrains Mono', ui-monospace, monospace;
+        }
+
+        /* Durée de la scène = hauteur de la section (cf. inspiration/oryzo/NOTES.md) */
+        #intro {
+            position: relative;
+            height: 400svh;
+        }
+
+        .intro__stage {
+            position: sticky;
+            top: 0;
+            height: 100svh;
+            overflow: hidden;
+        }
+
+        #shard-canvas,
+        .intro__flash {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .intro__flash {
+            pointer-events: none;
+            opacity: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(255, 236, 200, .8), rgba(245, 196, 106, .18) 28%, transparent 60%);
+        }
+
+        #intro-title {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin: 0;
+            transform: translate(-50%, -50%);
+            white-space: nowrap;
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-weight: normal;
+            font-size: clamp(56px, 13vw, 128px);
+            color: var(--c1);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Fil qui sort du « l » */
+        #l-thread {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: visible;
+        }
+
+        #l-thread path {
+            fill: none;
+            stroke: var(--gold);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0;
+        }
+
+        #l-thread .l-path {
+            stroke-width: 1.6;
+            filter: drop-shadow(0 0 4px rgba(245, 196, 106, .8));
+        }
+
+        #l-thread circle {
+            fill: #fff3d6;
+            opacity: 0;
+            filter: drop-shadow(0 0 6px var(--gold)) drop-shadow(0 0 14px var(--gold));
+        }
+
+        .baseline-probe {
+            display: inline-block;
+            width: 0;
+            height: 0;
+            vertical-align: baseline;
+        }
+
+        .intro__hint {
+            position: absolute;
+            left: 50%;
+            bottom: 2.5rem;
+            transform: translateX(-50%);
+            margin: 0;
+            font-size: 10px;
+            letter-spacing: .32em;
+            text-transform: uppercase;
+            color: var(--text-label);
+            text-align: center;
+        }
+
+        .intro__hint--next { opacity: 0; color: var(--gold); }
+
+        #skip {
+            position: fixed;
+            top: 1.25rem;
+            right: 1.25rem;
+            z-index: 10;
+            padding: .55em 1em;
+            border: 1px solid rgba(120, 150, 190, .25);
+            background: rgba(7, 10, 15, .6);
+            color: #c2c8ce;
+            font: inherit;
+            font-size: 11px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: opacity .4s, border-color .3s;
+        }
+
+        #skip:hover,
+        #skip:focus-visible { border-color: var(--gold); }
+
+        #skip.is-hidden { opacity: 0; pointer-events: none; }
+
+        #chapter1 {
+            min-height: 100svh;
+            display: grid;
+            place-content: center;
+            gap: 1rem;
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        #chapter1 p { margin: 0; font-size: 12px; color: var(--text-label); }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+</head>
+<body>
+    <button id="skip" type="button">Passer ›</button>
+
+    <section id="intro" aria-label="Introduction">
+        <div class="intro__stage">
+            <canvas id="shard-canvas" aria-hidden="true"></canvas>
+            <div class="intro__flash"></div>
+            <h1 id="intro-title">l'Évei<span class="title-l">l</span><span class="baseline-probe"></span></h1>
+            <svg id="l-thread" aria-hidden="true">
+                <path class="l-path"></path>
+                <circle r="2.5"></circle>
+            </svg>
+            <p class="intro__hint intro__hint--start">Faites défiler</p>
+            <p class="intro__hint intro__hint--next">Suivre le fil ↓</p>
+        </div>
+    </section>
+
+    <section id="chapter1">
+        <p>Chapitre I</p>
+        <p>(prochaine étape : le l d'« Éveil » devient un fil, boucle et souligne le titre)</p>
+    </section>
+
+    <script>
+        // Version 2D : Canvas 2D uniquement, pas de WebGL.
+        // L'éclat est un volume 3D simple projeté à la main, dessiné en polygones et dégradés.
+
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Recharger = reconstituer l'éclat : on repart toujours du haut
+        history.scrollRestoration = 'manual';
+        window.scrollTo(0, 0);
+
+        const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        const stage    = document.querySelector('.intro__stage');
+        const canvas   = document.querySelector('#shard-canvas');
+        const ctx      = canvas.getContext('2d');
+        const flash    = document.querySelector('.intro__flash');
+        const title    = document.querySelector('#intro-title');
+        const hintIn   = document.querySelector('.intro__hint--start');
+        const hintNext = document.querySelector('.intro__hint--next');
+        const skipBtn  = document.querySelector('#skip');
+        const chapter1 = document.querySelector('#chapter1');
+
+        // GSAP gère le centrage du titre (sinon le translate(-50%) CSS est figé en px)
+        gsap.set(title, { xPercent: -50, yPercent: -50, x: 0, y: 0 });
+
+        // Tout ce que la timeline anime
+        const state = {
+            approach: 0,     // 0 → 1 : avancée du fil du lecteur (scroll)
+            broken: false,
+            burst: false,
+            crack: 0,        // 0 → 1 : propagation des fissures depuis la pointe
+            core: 1,         // intensité de la lumière intérieure
+            spin: .18,       // vitesse de rotation de l'éclat
+            halo: .45,
+            gold: 0,         // les débris virent à l'or en se dissolvant
+            threadOpacity: 1,
+            swallow: 0,      // 0 → 1 : le fil glisse dans l'éclat
+            fade: 1,         // l'éclat s'efface sous la fumée
+            grow: 1,
+            smokeCore: 0,    // cœur de fumée dense qui recouvre l'éclat
+            tipScale: 1,
+            smokeFade: 0,
+        };
+
+        // Aléatoire déterministe : l'éclat a toujours la même forme
+        function mulberry32(a) {
+            return () => {
+                a |= 0; a = a + 0x6D2B79F5 | 0;
+                let t = Math.imul(a ^ a >>> 15, 1 | a);
+                t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+                return ((t ^ t >>> 14) >>> 0) / 4294967296;
+            };
+        }
+        const rnd  = mulberry32(7);
+        const rand = (a, b) => a + Math.random() * (b - a);
+        const clamp = (x, a, b) => Math.min(Math.max(x, a), b);
+        const smoothstep = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+        const mix = (a, b, t) => a + (b - a) * t;
+
+
+        // ===== Petite géométrie 3D =====
+
+        const v3    = (x, y, z) => ({ x, y, z });
+        const add   = (a, b) => v3(a.x + b.x, a.y + b.y, a.z + b.z);
+        const sub   = (a, b) => v3(a.x - b.x, a.y - b.y, a.z - b.z);
+        const scale = (a, k) => v3(a.x * k, a.y * k, a.z * k);
+        const dot   = (a, b) => a.x * b.x + a.y * b.y + a.z * b.z;
+        const cross = (a, b) => v3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
+        const len   = a => Math.hypot(a.x, a.y, a.z);
+        const norm  = a => scale(a, 1 / (len(a) || 1));
+        const lerp3 = (a, b, t) => v3(mix(a.x, b.x, t), mix(a.y, b.y, t), mix(a.z, b.z, t));
+
+        function rotate(p, rx, ry, rz) {
+            let { x, y, z } = p, c, s, t;
+            c = Math.cos(rx); s = Math.sin(rx); t = y * c - z * s; z = y * s + z * c; y = t;
+            c = Math.cos(ry); s = Math.sin(ry); t = x * c + z * s; z = -x * s + z * c; x = t;
+            c = Math.cos(rz); s = Math.sin(rz); t = x * c - y * s; y = x * s + y * c; x = t;
+            return v3(x, y, z);
+        }
+
+        // Caméra : regarde vers -z depuis camZ, perspective 35°
+        const view = { w: 0, h: 0, cx: 0, cy: 0, f: 0, camZ: 7, dpr: 1 };
+        function project(p) {
+            const k = view.f / (view.camZ - p.z);
+            return { x: view.cx + p.x * k, y: view.cy - p.y * k, k };
+        }
+
+
+        // ===== L'éclat d'âme =====
+
+        const CRYSTAL = { sides: 6, radius: .5, body: .7, tipTop: 1.12, tipBot: 1.08 };
+        const SCALE = .8;
+        const APEX_LOCAL = v3(0, CRYSTAL.body / 2 + CRYSTAL.tipTop, 0);
+        const APEX = scale(APEX_LOCAL, SCALE);
+
+        function crystalTriangles({ sides, radius, body, tipTop, tipBot }) {
+            const top = APEX_LOCAL, bot = v3(0, -body / 2 - tipBot, 0);
+            const ringT = [], ringB = [];
+            for (let i = 0; i < sides; i++) {
+                const a = i / sides * Math.PI * 2;
+                // Même rayon en haut et en bas : chaque face latérale reste plane (pas de pli en diagonale)
+                const r = radius * (1 + (rnd() - .5) * .12);
+                ringT.push(v3(Math.cos(a) * r, body / 2, Math.sin(a) * r));
+                ringB.push(v3(Math.cos(a) * r, -body / 2, Math.sin(a) * r));
+            }
+            const tris = [];
+            for (let i = 0; i < sides; i++) {
+                const j = (i + 1) % sides;
+                tris.push([top, ringT[i], ringT[j]]);
+                tris.push([ringT[i], ringB[i], ringB[j]]);
+                tris.push([ringT[i], ringB[j], ringT[j]]);
+                tris.push([bot, ringB[j], ringB[i]]);
+            }
+            // Oriente chaque face vers l'extérieur
+            return tris.map(([a, b, c]) => {
+                const n = cross(sub(b, a), sub(c, a));
+                const center = scale(add(add(a, b), c), 1 / 3);
+                return dot(n, center) < 0 ? [a, c, b] : [a, b, c];
+            });
+        }
+
+        const baseTris = crystalTriangles(CRYSTAL);
+
+        const key = v => [v.x, v.y, v.z].map(x => x.toFixed(3)).join(',');
+        // Diagonale d'une face latérale : ce n'est pas une arête de l'éclat
+        const isDiagonal = (p, q) => Math.abs(p.y - q.y) > .5 && Math.hypot(p.x - q.x, p.z - q.z) > .01;
+
+        // Arêtes de l'éclat (avec les faces qui les bordent, pour ne dessiner que les visibles)
+        const crystalEdges = [];
+        {
+            const byKey = new Map();
+            baseTris.forEach((tri, i) => {
+                for (const [p, q] of [[tri[0], tri[1]], [tri[1], tri[2]], [tri[2], tri[0]]]) {
+                    if (isDiagonal(p, q)) continue;
+                    const k = [key(p), key(q)].sort().join('|');
+                    if (!byKey.has(k)) byKey.set(k, { p, q, faces: [] });
+                    byKey.get(k).faces.push(i);
+                }
+            });
+            crystalEdges.push(...byKey.values());
+        }
+
+        // Fissures : chaque face découpée en morceaux irréguliers ; leurs arêtes s'allument depuis la pointe
+        function splitTriangle([a, b, c]) {
+            let u = .15 + rnd() * .5, v = .15 + rnd() * .5;
+            if (u + v > .8) { const k = .8 / (u + v); u *= k; v *= k; }
+            const p = add(add(scale(a, 1 - u - v), scale(b, u)), scale(c, v));
+            return [[a, b, p], [b, c, p], [c, a, p]];
+        }
+        const pieceTris = baseTris.flatMap(splitTriangle);
+        const baseKeys = new Set(baseTris.flat().map(key));
+
+        const cracks = [];
+        let crackMaxDist = 0;
+        {
+            const seen = new Set();
+            for (const [a, b, c] of pieceTris) {
+                for (const [p, q] of [[a, b], [b, c], [c, a]]) {
+                    const k = [key(p), key(q)].sort().join('|');
+                    if (seen.has(k)) continue;
+                    seen.add(k);
+                    if (baseKeys.has(key(p)) && baseKeys.has(key(q)) && isDiagonal(p, q)) continue;
+                    const d = Math.min(len(sub(p, APEX_LOCAL)), len(sub(q, APEX_LOCAL)));
+                    crackMaxDist = Math.max(crackMaxDist, len(sub(p, APEX_LOCAL)), len(sub(q, APEX_LOCAL)));
+                    cracks.push({ p, q, d });
+                }
+            }
+        }
+
+        const crystalPose = { ry: 0, rz: 0, y: 0 };
+        let pulsePhase = 0; // phase cumulée : changer la fréquence ne fait pas sauter la pulsation
+        const toWorld = p => {
+            const r = rotate(p, 0, crystalPose.ry, crystalPose.rz);
+            const k = SCALE * state.grow;
+            return v3(r.x * k, r.y * k + crystalPose.y, r.z * k);
+        };
+
+        // Teinte d'une facette (même logique que le shader de la version 3D)
+        const PINK = [242, 120, 180], PALE = [255, 214, 236], GOLD = [255, 176, 72];
+        function faceColor(n, i, back) {
+            const ndv = Math.abs(n.z);
+            const fres = Math.pow(1 - ndv, 2.5);
+            // Pas de reflet : ni lumière directionnelle ni point brillant, seulement une
+            // légère variation par facette ; base haute : l'éclat émet sa propre lumière
+            const facet = ((i * 7919) % 13) / 13;
+            const k = .82 + .25 * facet;
+            const col = PINK.map((c, j) => mix(c * k + PALE[j] * fres * .4, GOLD[j] * (.8 + .4 * fres), state.gold));
+            return { col, alpha: 1 }; // opaque
+        }
+        const rgba = (c, a) => `rgba(${c.map(x => Math.round(clamp(x, 0, 255))).join(',')},${a})`;
+
+
+        // ===== Fil du lecteur =====
+        // Descend du haut de l'écran en spirale qui se resserre, jusqu'à la pointe de l'éclat.
+
+        // Au-delà de s = 1, le tracé continue à l'intérieur de l'éclat (le fil y glisse au contact)
+        const INSIDE_LEN = .35;
+        function spinePoint(s, t) {
+            if (s > 1) {
+                const apex = v3(0, APEX.y + .01, 0);
+                return lerp3(apex, v3(0, -.1, 0), Math.min((s - 1) / INSIDE_LEN, 1));
+            }
+            const rad = .95 * Math.pow(1 - s, 1.1);
+            const ang = s * Math.PI * 2.5 + .9;
+            const env = Math.pow(1 - s, 1.5);
+            return v3(
+                Math.cos(ang) * rad + Math.sin(s * 10 - t * 1.1) * .07 * env,
+                mix(2.45, APEX.y + .01, s),
+                Math.sin(ang) * rad * .6 + Math.cos(s * 8 - t * .8) * .05 * env,
+            );
+        }
+
+
+        // ===== Textures pré-calculées =====
+
+        function glowSprite(size, stops) {
+            const c = document.createElement('canvas');
+            c.width = c.height = size;
+            const g = c.getContext('2d');
+            const grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+            stops.forEach(([o, col]) => grad.addColorStop(o, col));
+            g.fillStyle = grad;
+            g.fillRect(0, 0, size, size);
+            return c;
+        }
+        const sparkSprite = glowSprite(64, [[0, 'rgba(255,248,225,1)'], [.12, 'rgba(255,214,140,.9)'], [.35, 'rgba(245,170,70,.18)'], [1, 'rgba(0,0,0,0)']]);
+        const tipSprite   = glowSprite(128, [[0, 'rgba(255,245,220,1)'], [.15, 'rgba(255,200,110,.55)'], [1, 'rgba(0,0,0,0)']]);
+        const haloSprite  = glowSprite(256, [[0, 'rgba(255,190,225,.5)'], [.25, 'rgba(210,110,170,.14)'], [.6, 'rgba(160,70,130,.03)'], [1, 'rgba(0,0,0,0)']]);
+        const smokeCoreSprite = glowSprite(256, [[0, 'rgba(255,236,190,.95)'], [.3, 'rgba(255,190,90,.5)'], [.65, 'rgba(220,130,40,.12)'], [1, 'rgba(0,0,0,0)']]);
+        const coreSprite  = glowSprite(128, [[0, 'rgba(255,255,255,1)'], [.25, 'rgba(255,170,215,.55)'], [1, 'rgba(0,0,0,0)']]);
+
+        // Volutes de fumée : bruit fractal déformé, crêtes fines, dans un disque doux
+        function makePuff(seed) {
+            const S = 192, G = 64;
+            const r = mulberry32(seed);
+            const lattice = Float32Array.from({ length: G * G }, r);
+            const at = (x, y) => lattice[((y % G + G) % G) * G + ((x % G + G) % G)];
+            const noise = (x, y) => {
+                const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+                const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+                return mix(mix(at(xi, yi), at(xi + 1, yi), u), mix(at(xi, yi + 1), at(xi + 1, yi + 1), u), v);
+            };
+            const fbm = (x, y) => {
+                let s = 0, a = .5;
+                for (let o = 0; o < 4; o++) { s += a * noise(x, y); x = x * 2.03 + 17; y = y * 2.03 + 9; a *= .5; }
+                return s;
+            };
+            const c = document.createElement('canvas');
+            c.width = c.height = S;
+            const g = c.getContext('2d');
+            const img = g.createImageData(S, S);
+            for (let y = 0; y < S; y++) {
+                for (let x = 0; x < S; x++) {
+                    const u = x / S * 5, v = y / S * 5;
+                    const q = fbm(u, v);
+                    const n = fbm(u + 2.6 * q, v + 2.6 * q + 3.1);
+                    const ridge = 1 - Math.abs(n * 2 - 1);
+                    const rr = Math.hypot(x / S - .5, y / S - .5) * 2;
+                    const d = (Math.pow(ridge, 5) * .85 + Math.pow(n, 3) * .4) * smoothstep(1, .25, rr);
+                    const i = (y * S + x) * 4;
+                    const t = smoothstep(.05, .5, d), w = smoothstep(.45, .9, d);
+                    img.data[i]     = mix(mix(140, 255, t), 255, w);
+                    img.data[i + 1] = mix(mix(52, 158, t), 225, w);
+                    img.data[i + 2] = mix(mix(5, 40, t), 150, w);
+                    img.data[i + 3] = clamp(d * 255 * 1.4, 0, 255);
+                }
+            }
+            g.putImageData(img, 0, 0);
+            return c;
+        }
+        const puffs = [11, 23, 37, 51].map(makePuff);
+
+
+        // ===== Fumée, étincelles, étoiles =====
+
+        const smoke = [];   // volutes
+        const sparks = [];  // étincelles et poussière d'or
+        const stars = Array.from({ length: 260 }, () => ({
+            x: Math.random(), y: Math.random(), r: .4 + Math.random() * .9, s: Math.random() * 100,
+        }));
+
+        function emitSpark(p, v, life, size, mote = false, delay = 0) {
+            sparks.push({ p, v, life, size, mote, age: -delay, seed: Math.random() * 100 });
+        }
+        function emitMote(delay = 0) {
+            emitSpark(v3(rand(-4, 4), rand(-2.4, 2.4), rand(-1.5, 1)), v3(rand(-.04, .04), rand(.03, .09), 0),
+                rand(6, 11), rand(2.5, 5), true, delay);
+        }
+
+        function burstSmoke() {
+            for (let i = 0; i < 34; i++) {
+                const a = Math.random() * Math.PI * 2;
+                const sp = rand(1.5, 3);
+                smoke.push({
+                    p: v3(Math.cos(a) * rand(0, .3), Math.sin(a) * rand(0, .5), rand(-.3, .3)),
+                    v: v3(Math.cos(a) * sp - Math.sin(a) * sp * .5, Math.sin(a) * sp + Math.cos(a) * sp * .5, 0),
+                    rot: Math.random() * Math.PI * 2, vr: rand(-.4, .4),
+                    size: rand(.9, 1.4), grow: rand(.5, 1),
+                    img: puffs[i % puffs.length], age: 0, peak: rand(.16, .28),
+                });
+            }
+        }
+
+
+        // ===== Taille / responsive =====
+
+        function resize() {
+            view.dpr = Math.min(devicePixelRatio, 1.5);
+            view.w = stage.clientWidth;
+            view.h = stage.clientHeight;
+            canvas.width = view.w * view.dpr;
+            canvas.height = view.h * view.dpr;
+            view.cx = view.w / 2;
+            view.cy = view.h / 2;
+            view.camZ = view.w / view.h < .8 ? 9.5 : 7;
+            view.f = (view.h / 2) / Math.tan(17.5 * Math.PI / 180);
+        }
+        addEventListener('resize', resize);
+        resize();
+
+
+        // ===== Le fil sort du « l » =====
+        // Le l final d'« Éveil » devient le fil : il monte, boucle au-dessus du mot de droite
+        // à gauche, redescend à gauche, souligne le mot puis plonge vers la suite. Piloté par le scroll.
+
+        const lSpan = title.querySelector('.title-l');
+        const probe = title.querySelector('.baseline-probe');
+        const lSvg  = document.querySelector('#l-thread');
+        const lPath = lSvg.querySelector('.l-path');
+        const lTip  = lSvg.querySelector('circle');
+        const loop  = { p: 0, len: 0, ready: false, tween: null };
+
+        function buildLoop() {
+            // Mesures sans transformation (offset*) : justes même si le titre est encore animé
+            const S = { width: stage.clientWidth, height: stage.clientHeight };
+            const left = title.offsetLeft - title.offsetWidth / 2;  // titre centré (xPercent: -50)
+            const top = title.offsetTop - title.offsetHeight / 2;
+            const right = left + title.offsetWidth;
+            const fs = parseFloat(getComputedStyle(title).fontSize);
+            const base = top + probe.offsetTop;                     // ligne de base du texte
+            const slant = Math.tan(13 * Math.PI / 180);             // inclinaison de l'italique
+
+            // Sommet du l (hampe inclinée comme l'italique)
+            const bx = left + lSpan.offsetLeft + lSpan.offsetWidth * .32, by = base - fs * .02;
+            const ty = base - fs * .68, tx = bx + (by - ty) * slant;
+            // Repères : une grande ellipse souple autour du mot (sa base sert de soulignement)
+            const sx = tx - 1, sy = ty;                       // départ : sommet du l, 1px à gauche
+            const ex = (left + right) / 2;
+            const yTop = top - fs * .1, yU = base + fs * .24;
+            const ey = (yTop + yU) / 2;
+            const rx = (right - left) / 2 + fs * .32, ry = (yU - yTop) / 2;
+            const K = .5523, F = .72;                         // F > K : bas plus plat, pour souligner
+            // Direction de la hampe (le fil sort du l dans son prolongement)
+            const dl = Math.hypot(tx - bx, ty - by), ux = (tx - bx) / dl, uy = (ty - by) / dl;
+
+            lSvg.setAttribute('viewBox', `0 0 ${S.width} ${S.height}`);
+
+            // Descente : grandes ondes amples et lentes jusqu'en bas de l'écran
+            const wx = ex + rx * .75;
+            const amp = Math.min(fs * .85, (S.width - wx) * .6, wx * .6);
+            const step = fs * 2.4;
+            const wave = [];
+            for (let y = ey + ry + fs * .55, k = -1; y < S.height + 20; y += step, k = -k) {
+                const c1 = wave.length ? wx + amp * k : wx;   // 1re onde : départ vertical
+                wave.push(`C ${c1} ${y + step * .36}, ${wx + amp * k} ${y + step * .64}, ${wx} ${y + step}`);
+            }
+
+            // Le fil part du sommet du l (la lettre garde sa police, elle devient seulement dorée)
+            lPath.setAttribute('d', [
+                `M ${sx} ${sy}`,
+                // monte dans le prolongement du l et rejoint le haut de l'ellipse
+                `C ${sx + ux * fs * .3} ${sy + uy * fs * .3}, ${ex + rx * .9} ${ey - ry}, ${ex} ${ey - ry}`,
+                // passe au-dessus du mot, de droite à gauche
+                `C ${ex - rx * K} ${ey - ry}, ${ex - rx} ${ey - ry * K}, ${ex - rx} ${ey}`,
+                // redescend à gauche
+                `C ${ex - rx} ${ey + ry * K}, ${ex - rx * F} ${ey + ry}, ${ex} ${ey + ry}`,
+                // souligne le mot de gauche à droite, puis s'arrondit vers le bas
+                `C ${ex + rx * F} ${ey + ry}, ${wx} ${ey + ry + fs * .1}, ${wx} ${ey + ry + fs * .55}`,
+                ...wave,
+            ].join(' '));
+            loop.len = lPath.getTotalLength();
+            lPath.style.strokeDasharray = loop.len;
+            loop.ready = true;
+            drawLoop();
+        }
+
+        function drawLoop() {
+            if (!loop.ready) return;
+            const d = loop.p * loop.len;
+            lPath.style.strokeDashoffset = loop.len - d;
+            lPath.style.opacity = loop.p > 0 ? 1 : 0;
+            const pt = lPath.getPointAtLength(d);
+            lTip.setAttribute('cx', pt.x);
+            lTip.setAttribute('cy', pt.y);
+            lTip.style.opacity = loop.p > 0 && loop.p < .995 ? 1 : 0;
+            if (loop.p > 0) hintNext.style.opacity = Math.max(0, 1 - loop.p * 6);
+        }
+
+        // Démarre une fois le titre en place : la suite du scroll fait avancer le fil
+        function startLoop() {
+            if (loop.tween) return;
+            buildLoop();
+            const y0 = scrollY;
+            const end = y0 + innerHeight * 1.3;
+            // La scène doit rester fixée jusqu'à ce que le fil arrive au bout :
+            // si le contact a eu lieu plus bas que prévu (inertie du scroll), on allonge l'intro
+            const intro = document.querySelector('#intro');
+            const pinEnd = intro.offsetTop + intro.offsetHeight - innerHeight;
+            if (end > pinEnd) {
+                intro.style.height = `${intro.offsetHeight + (end - pinEnd) + innerHeight * .1}px`;
+                ScrollTrigger.refresh();
+            }
+            loop.tween = gsap.to(loop, {
+                p: 1,
+                ease: 'none',
+                scrollTrigger: { start: y0, end, scrub: .8 },
+                onUpdate: drawLoop,
+            });
+        }
+
+        // Sans animation (passer / mouvement réduit) : fil déjà dessiné
+        function loopFinal() {
+            if (loop.tween) return;
+            document.fonts.ready.then(() => { buildLoop(); loop.p = 1; drawLoop(); });
+        }
+
+        addEventListener('resize', () => { if (loop.ready) buildLoop(); });
+        // Les mesures dépendent de la police du titre : on recalcule une fois qu'elle est chargée
+        document.fonts.ready.then(() => { if (loop.ready) buildLoop(); });
+
+
+        // ===== Séquence =====
+
+        // Blocage du scroll pendant la séquence automatique : overflow seul ne suffit pas
+        // (l'inertie d'un pavé tactile ou d'un écran tactile peut encore faire défiler)
+        const SCROLL_KEYS = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ']);
+        const blockScroll = e => { if (e.type !== 'keydown' || SCROLL_KEYS.has(e.key)) e.preventDefault(); };
+        const lockY = { y: 0 };
+        const holdY = () => { if (scrollY !== lockY.y) scrollTo(0, lockY.y); };
+        function lockScroll() {
+            lockY.y = scrollY;
+            document.documentElement.style.overflow = 'hidden';
+            for (const t of ['wheel', 'touchmove', 'keydown']) addEventListener(t, blockScroll, { passive: false });
+            addEventListener('scroll', holdY);
+        }
+        function unlockScroll() {
+            document.documentElement.style.overflow = '';
+            for (const t of ['wheel', 'touchmove', 'keydown']) removeEventListener(t, blockScroll);
+            removeEventListener('scroll', holdY);
+        }
+
+        let sequence = null;
+
+        // 1. Approche : pilotée par le scroll, réversible tant qu'il n'y a pas contact
+        const approachTween = gsap.to(state, {
+            approach: 1,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '#intro',
+                start: 'top top',
+                end: () => '+=' + innerHeight * 1.6,
+                scrub: 1,
+                invalidateOnRefresh: true,
+            },
+            onUpdate() {
+                hintIn.style.opacity = 1 - Math.min(state.approach * 8, 1);
+                if (state.approach >= .995 && !state.broken) shatter();
+            },
+        });
+
+        // 2. Contact : point de non-retour, la suite se joue seule
+        function shatter() {
+            state.broken = true;
+            state.approach = 1;
+            approachTween.scrollTrigger?.kill();
+            approachTween.kill();
+            lockScroll();
+            hintIn.style.opacity = 0;
+
+            sequence = gsap.timeline()
+                .to(state, { tipScale: 2.6, duration: .25, ease: 'power2.out' }, 0)
+                .to(state, { tipScale: 0, duration: .5 }, .25)
+                // Le fil glisse le long de son tracé et entre dans l'éclat
+                .to(state, { swallow: 1, duration: 1.1, ease: 'power2.in' }, 0)
+                .to(state, { crack: 1, duration: 1.15, ease: 'power1.in' }, 0)
+                .to(state, { core: 1.8, spin: .7, halo: .5, duration: 1.15, ease: 'power2.in' }, 0)
+                .add(burst, 1.15)
+                .to(flash, { opacity: .2, duration: .07 }, 1.15)
+                .to(flash, { opacity: 0, duration: 1.2, ease: 'power2.out' }, 1.22)
+                .to(state, { halo: 0, duration: .5 }, 1.15)
+                // Pas de débris : l'éclat se dissout en or sous la fumée qui le recouvre
+                .to(state, { gold: .8, duration: .5, ease: 'power1.out' }, 1.15)
+                .to(state, { fade: 0, duration: .8, ease: 'power1.in' }, 1.15)
+                .to(state, { grow: 1.12, duration: 1.4, ease: 'power2.out' }, 1.15)
+                .to(state, { smokeCore: .6, duration: .35, ease: 'power2.out' }, 1.15)
+                .to(state, { smokeCore: 0, duration: 2.4, ease: 'power1.inOut' }, 2)
+                .to(state, { smokeFade: 1, duration: .3, ease: 'power2.out' }, 1.15)
+                .to(state, { smokeFade: .4, duration: 4.5, ease: 'power1.inOut' }, 1.6)
+                .fromTo(title,
+                    { opacity: 0, scale: 1.1, filter: 'blur(16px)', color: '#ffe2a6', textShadow: '0 0 34px rgba(245,182,90,.85)' },
+                    { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 2.4, ease: 'power2.out' }, 2.1)
+                .to(title, { color: '#4fa9ff', textShadow: '0 0 18px rgba(79,169,255,.25)', duration: 1.8 }, 4)
+                // Le l reste doré : le fil est dedans
+                .to(lSpan, { color: '#f5c46a', textShadow: '0 0 14px rgba(245,196,106,.6)', duration: 1 }, 4)
+                .to(hintNext, { opacity: 1, duration: .8 }, 4.4)
+                .call(unlockScroll, null, 4.6)
+                .call(startLoop, null, 4.6);
+        }
+
+        function burst() {
+            state.burst = true;
+            state.threadOpacity = 0; // il est entré dans l'éclat
+            burstSmoke();
+            for (let i = 0; i < 160; i++) {
+                const a = Math.random() * Math.PI * 2, sp = rand(.8, 3);
+                emitSpark(v3(0, rand(-.6, .6), 0), v3(Math.cos(a) * sp, Math.sin(a) * sp, rand(-.3, .3)), rand(.8, 2), rand(1.5, 3.5));
+            }
+            for (let i = 0; i < 90; i++) emitMote(rand(1, 4));
+        }
+
+        // État final, sans animation : bouton « passer » et prefers-reduced-motion
+        function finalState() {
+            if (!state.broken) {
+                state.broken = true;
+                approachTween.scrollTrigger?.kill();
+                approachTween.kill();
+                for (let i = 0; i < 90; i++) emitMote(rand(0, 2));
+                burstSmoke();
+                for (const s of smoke) s.age = 6;
+            }
+            sequence?.progress(1);
+            state.burst = true;
+            state.fade = 0;
+            state.threadOpacity = 0;
+            state.halo = 0;
+            state.smokeCore = 0;
+            state.smokeFade = .4;
+            flash.style.opacity = 0;
+            hintIn.style.opacity = 0;
+            gsap.set(title, { opacity: 1, scale: 1, filter: 'none', color: '#4fa9ff', textShadow: '0 0 18px rgba(79,169,255,.25)' });
+            gsap.set(lSpan, { color: '#f5c46a', textShadow: '0 0 14px rgba(245,196,106,.6)' });
+            gsap.set(hintNext, { opacity: 1 });
+            unlockScroll();
+            loopFinal();
+        }
+
+        skipBtn.addEventListener('click', () => {
+            finalState();
+            chapter1.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' });
+        });
+
+        // Le bouton disparaît une fois l'intro passée
+        ScrollTrigger.create({
+            trigger: chapter1,
+            start: 'top 60%',
+            onToggle: self => skipBtn.classList.toggle('is-hidden', self.isActive),
+        });
+
+        if (reducedMotion) finalState();
+
+
+        // ===== Mise à jour =====
+
+        function update(dt, t) {
+            const a = state.approach;
+
+            if (state.fade > 0) {
+                pulsePhase += dt * (1.5 + a * 5);
+                crystalPose.ry += dt * (state.spin + (state.burst ? 0 : a * .4));
+                crystalPose.rz = Math.sin(t * .5) * .04 * (1 - a);
+                crystalPose.y = Math.sin(t * .8) * .05 * (1 - a);
+                // En se dissolvant, l'éclat laisse échapper des étincelles
+                if (state.burst && Math.random() < dt * 60 * state.fade) {
+                    emitSpark(v3(rand(-.4, .4), rand(-1, 1), rand(-.4, .4)), v3(rand(-.4, .4), rand(0, .5), rand(-.1, .1)), rand(.8, 1.8), rand(1.2, 2.6));
+                }
+            }
+
+            // Fumée : s'étend en tourbillonnant, ralentit, puis orbite lentement
+            for (const s of smoke) {
+                s.age += dt;
+                const drag = Math.exp(-1.3 * dt);
+                s.v = scale(s.v, drag);
+                const r = Math.hypot(s.p.x, s.p.y) || 1;
+                s.v.x += (-s.p.y / r) * .08 * dt;
+                s.v.y += (s.p.x / r) * .08 * dt + .04 * dt;
+                s.p = add(s.p, scale(s.v, dt));
+                s.rot += s.vr * dt;
+            }
+
+            // Étincelles et poussière
+            for (let i = sparks.length - 1; i >= 0; i--) {
+                const s = sparks[i];
+                s.age += dt;
+                if (s.age < 0) continue;
+                if (s.age > s.life) {
+                    sparks.splice(i, 1);
+                    if (s.mote) emitMote();
+                    continue;
+                }
+                const drag = Math.exp(-1.4 * dt);
+                s.v = scale(s.v, drag);
+                s.v.x += Math.sin(s.p.y * 1.9 + t * .8 + s.seed) * .25 * dt;
+                s.v.y += (.18 + Math.cos(s.p.x * 1.4 + t * .6 + s.seed) * .12) * dt;
+                s.p = add(s.p, scale(s.v, dt));
+            }
+        }
+
+
+        // ===== Dessin =====
+
+        function drawStars(t) {
+            ctx.fillStyle = '#c0d0ff';
+            for (const s of stars) {
+                ctx.globalAlpha = .2 + .25 * Math.sin(t * (.4 + (s.s % 1)) + s.s);
+                ctx.fillRect(s.x * view.w, s.y * view.h, s.r, s.r);
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        function drawSprite(img, p, worldSize, alpha, sx = 1, sy = 1, rot = 0) {
+            const pr = project(p);
+            const w = worldSize * pr.k * sx, h = worldSize * pr.k * sy;
+            ctx.globalAlpha = alpha;
+            if (rot) {
+                ctx.save();
+                ctx.translate(pr.x, pr.y);
+                ctx.rotate(rot);
+                ctx.drawImage(img, -w / 2, -h / 2, w, h);
+                ctx.restore();
+            } else {
+                ctx.drawImage(img, pr.x - w / 2, pr.y - h / 2, w, h);
+            }
+        }
+
+        function drawCrystal(t, a) {
+            const faces = baseTris.map((tri, i) => {
+                const w = tri.map(toWorld);
+                const n = norm(cross(sub(w[1], w[0]), sub(w[2], w[0])));
+                return { i, w, n, z: (w[0].z + w[1].z + w[2].z) / 3, pts: w.map(project) };
+            }).sort((f, g) => f.z - g.z);
+
+            const center = v3(0, crystalPose.y, 0);
+            const pulse = 1 + Math.sin(pulsePhase) * (.08 + a * .2);
+            const core = state.core * (1 + a * .5) * pulse;
+
+            const path = pts => {
+                ctx.beginPath();
+                ctx.moveTo(pts[0].x, pts[0].y);
+                ctx.lineTo(pts[1].x, pts[1].y);
+                ctx.lineTo(pts[2].x, pts[2].y);
+                ctx.closePath();
+            };
+
+            ctx.save();
+            ctx.globalAlpha = state.fade;
+
+            // Faces avant
+            ctx.globalCompositeOperation = 'source-over';
+            const front = faces.filter(f => f.n.z >= 0);
+
+            // Lueur : silhouette floutée en mode additif, derrière les faces → l'éclat rayonne dans le noir
+            // (2 couches : une lueur serrée et une aura large)
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            const glow = clamp(core, 0, 2) / 2;
+            for (const [blur, alpha] of [[16, .45 + .35 * glow], [56, .4 + .3 * glow]]) {
+                ctx.filter = `blur(${blur}px)`;
+                ctx.fillStyle = `rgba(255,110,185,${alpha * state.fade})`;
+                ctx.beginPath();
+                for (const f of front) {
+                    ctx.moveTo(f.pts[0].x, f.pts[0].y);
+                    ctx.lineTo(f.pts[1].x, f.pts[1].y);
+                    ctx.lineTo(f.pts[2].x, f.pts[2].y);
+                    ctx.closePath();
+                }
+                ctx.fill();
+            }
+            ctx.restore();
+            ctx.globalAlpha = state.fade;
+            for (const f of front) {
+                const { col, alpha } = faceColor(f.n, f.i, false);
+                path(f.pts);
+                ctx.fillStyle = rgba(col, alpha);
+                ctx.fill();
+                ctx.strokeStyle = rgba(col, alpha); // referme les micro-jours entre facettes
+                ctx.lineWidth = .8;
+                ctx.stroke();
+            }
+
+            // Lueur intérieure vue à travers les faces avant
+            ctx.save();
+            ctx.beginPath();
+            for (const f of front) {
+                ctx.moveTo(f.pts[0].x, f.pts[0].y);
+                ctx.lineTo(f.pts[1].x, f.pts[1].y);
+                ctx.lineTo(f.pts[2].x, f.pts[2].y);
+                ctx.closePath();
+            }
+            ctx.clip();
+            ctx.globalCompositeOperation = 'lighter';
+            const c = project(center);
+            const rad = 1.3 * c.k * SCALE;
+            const g = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, rad);
+            g.addColorStop(0, `rgba(255,160,210,${clamp(.7 * core * state.fade, 0, 1)})`);
+            g.addColorStop(1, 'rgba(255,150,205,0)');
+            ctx.fillStyle = g;
+            ctx.setTransform(view.dpr, 0, 0, view.dpr * 1.8, 0, -c.y * view.dpr * .8);
+            ctx.fillRect(c.x - rad, c.y - rad, rad * 2, rad * 2);
+            ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+            ctx.restore();
+
+            // Arêtes visibles (sans les diagonales des faces latérales)
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.globalAlpha = state.fade;
+            ctx.strokeStyle = 'rgba(255,226,241,.28)';
+            ctx.lineWidth = 1;
+            const visibleFace = new Set(front.map(f => f.i));
+            for (const e of crystalEdges) {
+                if (!e.faces.some(i => visibleFace.has(i))) continue;
+                const pp = project(toWorld(e.p)), qq = project(toWorld(e.q));
+                ctx.beginPath();
+                ctx.moveTo(pp.x, pp.y);
+                ctx.lineTo(qq.x, qq.y);
+                ctx.stroke();
+            }
+
+            // Fissures depuis la pointe
+            if (state.crack > 0) {
+                const front = state.crack * (crackMaxDist + .4);
+                ctx.lineCap = 'round';
+                for (const cr of cracks) {
+                    const lit = smoothstep(front, front - .35, cr.d);
+                    if (lit <= 0) continue;
+                    const hot = smoothstep(front - .5, front, cr.d) * lit;
+                    const p = toWorld(scale(cr.p, 1.006)), q = toWorld(scale(cr.q, 1.006));
+                    if ((p.z + q.z) / 2 < 0) continue; // opaque : fissures de la face cachée invisibles
+                    const depth = state.fade;
+                    const pp = project(p), qq = project(q);
+                    ctx.strokeStyle = hot > .3 ? `rgba(255,250,235,${lit * depth})` : `rgba(255,205,140,${lit * depth})`;
+                    ctx.lineWidth = 1 + hot * 1.2;
+                    ctx.beginPath();
+                    ctx.moveTo(pp.x, pp.y);
+                    ctx.lineTo(qq.x, qq.y);
+                    ctx.stroke();
+                }
+            }
+            ctx.restore();
+        }
+
+        function drawThread(t) {
+            const a = state.approach;
+            if (a <= .002 || state.threadOpacity <= 0) return;
+            // Tracé visible : de la queue à la tête (au contact, les deux avancent dans l'éclat)
+            const tail = state.swallow, head = a + state.swallow * INSIDE_LEN;
+            const N = Math.max(2, Math.ceil((head - tail) * 160));
+            const pts = [];
+            for (let i = 0; i <= N; i++) pts.push(project(spinePoint(mix(tail, head, i / N), t)));
+
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            // 3 passes : halo large, halo moyen, cœur fin ; le fil apparaît en fondu depuis le haut
+            // (le fil descend toujours : un dégradé vertical suffit pour le fondu)
+            const fadeEnd = project(spinePoint(Math.min(tail + .2, 1), t)).y;
+            for (const [width, color, alpha] of [[7, '245,170,70', .06], [3.2, '255,196,110', .16], [1.3, '255,236,200', .9]]) {
+                const g = ctx.createLinearGradient(0, pts[0].y, 0, Math.max(fadeEnd, pts[0].y + 1));
+                g.addColorStop(0, `rgba(${color},0)`);
+                g.addColorStop(1, `rgba(${color},${alpha * state.threadOpacity})`);
+                ctx.strokeStyle = g;
+                ctx.lineWidth = width;
+                ctx.beginPath();
+                ctx.moveTo(pts[0].x, pts[0].y);
+                for (let k = 1; k <= N; k++) ctx.lineTo(pts[k].x, pts[k].y);
+                ctx.stroke();
+            }
+            // Pointe lumineuse
+            if (state.tipScale > 0) drawSprite(tipSprite, spinePoint(a, t), .32 * state.tipScale, state.threadOpacity);
+        }
+
+        function drawSmoke() {
+            if (!smoke.length || state.smokeFade <= 0) return;
+            ctx.globalCompositeOperation = 'lighter';
+            // Cœur dense au début : la fumée recouvre l'éclat, puis se dégage pour le titre
+            if (state.smokeCore > 0) drawSprite(smokeCoreSprite, v3(0, 0, .3), 3.4, state.smokeCore, 1, 1.4);
+            for (const s of smoke) {
+                const fadeIn = Math.min(s.age / .35, 1);
+                const size = s.size + s.grow * (1 - Math.exp(-s.age * .8));
+                drawSprite(s.img, s.p, size * 1.6, s.peak * fadeIn * state.smokeFade, 1, 1, s.rot);
+            }
+        }
+
+        function drawSparks(t) {
+            ctx.globalCompositeOperation = 'lighter';
+            for (const s of sparks) {
+                if (s.age < 0) continue;
+                const u = s.age / s.life;
+                const fadeIn = Math.min(s.age / (s.mote ? 1 : .08), 1);
+                const fadeOut = 1 - smoothstep(.5, 1, u);
+                const tw = s.mote ? .55 + .45 * Math.sin(t * 2.2 + s.seed) : 1;
+                drawSprite(sparkSprite, s.p, s.size * .045, (s.mote ? .5 : 1) * fadeIn * fadeOut * tw);
+            }
+        }
+
+        function render(t) {
+            ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = '#040507';
+            ctx.fillRect(0, 0, view.w, view.h);
+
+            drawStars(t);
+
+            const a = state.approach;
+            ctx.globalCompositeOperation = 'lighter';
+            drawSprite(haloSprite, v3(0, crystalPose.y, -.6), 3.8, clamp(state.halo + Math.sin(pulsePhase) * .05 + a * .1, 0, 1) * state.fade);
+            ctx.globalAlpha = 1;
+            // Une fois le contact fait, le fil passe derrière l'éclat : il y entre
+            if (state.broken) drawThread(t);
+            if (state.fade > 0) drawCrystal(t, a);
+            ctx.globalAlpha = 1;
+            if (!state.broken) drawThread(t);
+            drawSmoke();
+            drawSparks(t);
+            ctx.globalAlpha = 1;
+            ctx.globalCompositeOperation = 'source-over';
+        }
+
+
+        // ===== Boucle =====
+
+        let visible = true;
+        new IntersectionObserver(([e]) => visible = e.isIntersecting).observe(stage);
+
+        let last = performance.now();
+        function frame(now) {
+            const dt = Math.min((now - last) / 1000, .05);
+            last = now;
+            if (visible) {
+                update(dt, now / 1000);
+                render(now / 1000);
+            }
+            requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+    </script>
+</body>
+</html>

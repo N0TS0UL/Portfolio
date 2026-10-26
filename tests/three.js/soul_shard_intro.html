@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prototype — Éclat d'âme (3D)</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+
+    <style>
+        /* Tokens repris de style.scss */
+        :root {
+            --bg-page: #040507;
+            --text-label: #5b626b;
+            --gold: #f5c46a;
+            --c1: #4fa9ff;
+        }
+
+        * { box-sizing: border-box; }
+
+        html { scrollbar-gutter: stable; }
+
+        html, body {
+            margin: 0;
+            background: var(--bg-page);
+            color: #9aa1a8;
+            font-family: 'JetBrains Mono', ui-monospace, monospace;
+        }
+
+        /* Durée de la scène = hauteur de la section (cf. inspiration/oryzo/NOTES.md) */
+        #intro {
+            position: relative;
+            height: 400svh;
+        }
+
+        .intro__stage {
+            position: sticky;
+            top: 0;
+            height: 100svh;
+            overflow: hidden;
+        }
+
+        #shard-canvas,
+        .intro__flash {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .intro__flash {
+            pointer-events: none;
+            opacity: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(255, 236, 200, .8), rgba(245, 196, 106, .18) 28%, transparent 60%);
+        }
+
+        #intro-title {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin: 0;
+            transform: translate(-50%, -50%);
+            white-space: nowrap;
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-weight: normal;
+            font-size: clamp(56px, 13vw, 128px);
+            color: var(--c1);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Fil qui sort du « l » */
+        #l-thread {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: visible;
+        }
+
+        #l-thread path {
+            fill: none;
+            stroke: var(--gold);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0;
+        }
+
+        #l-thread .l-path {
+            stroke-width: 1.6;
+            filter: drop-shadow(0 0 4px rgba(245, 196, 106, .8));
+        }
+
+        #l-thread circle {
+            fill: #fff3d6;
+            opacity: 0;
+            filter: drop-shadow(0 0 6px var(--gold)) drop-shadow(0 0 14px var(--gold));
+        }
+
+        .baseline-probe {
+            display: inline-block;
+            width: 0;
+            height: 0;
+            vertical-align: baseline;
+        }
+
+        .intro__hint {
+            position: absolute;
+            left: 50%;
+            bottom: 2.5rem;
+            transform: translateX(-50%);
+            margin: 0;
+            font-size: 10px;
+            letter-spacing: .32em;
+            text-transform: uppercase;
+            color: var(--text-label);
+            text-align: center;
+        }
+
+        .intro__hint--next { opacity: 0; color: var(--gold); }
+
+        #skip {
+            position: fixed;
+            top: 1.25rem;
+            right: 1.25rem;
+            z-index: 10;
+            padding: .55em 1em;
+            border: 1px solid rgba(120, 150, 190, .25);
+            background: rgba(7, 10, 15, .6);
+            color: #c2c8ce;
+            font: inherit;
+            font-size: 11px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: opacity .4s, border-color .3s;
+        }
+
+        #skip:hover,
+        #skip:focus-visible { border-color: var(--gold); }
+
+        #skip.is-hidden { opacity: 0; pointer-events: none; }
+
+        #chapter1 {
+            min-height: 100svh;
+            display: grid;
+            place-content: center;
+            gap: 1rem;
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        #chapter1 p { margin: 0; font-size: 12px; color: var(--text-label); }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+    <button id="skip" type="button">Passer ›</button>
+
+    <section id="intro" aria-label="Introduction">
+        <div class="intro__stage">
+            <canvas id="shard-canvas" aria-hidden="true"></canvas>
+            <div class="intro__flash"></div>
+            <h1 id="intro-title">l'Évei<span class="title-l">l</span><span class="baseline-probe"></span></h1>
+            <svg id="l-thread" aria-hidden="true">
+                <path class="l-path"></path>
+                <circle r="2.5"></circle>
+            </svg>
+            <p class="intro__hint intro__hint--start">Faites défiler</p>
+            <p class="intro__hint intro__hint--next">Suivre le fil ↓</p>
+        </div>
+    </section>
+
+    <section id="chapter1">
+        <p>Chapitre I</p>
+        <p>(prochaine étape : le l d'« Éveil » devient un fil, boucle et souligne le titre)</p>
+    </section>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Recharger = reconstituer l'éclat : on repart toujours du haut
+        history.scrollRestoration = 'manual';
+        window.scrollTo(0, 0);
+
+        const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        const stage    = document.querySelector('.intro__stage');
+        const canvas   = document.querySelector('#shard-canvas');
+        const flash    = document.querySelector('.intro__flash');
+        const title    = document.querySelector('#intro-title');
+        const hintIn   = document.querySelector('.intro__hint--start');
+        const hintNext = document.querySelector('.intro__hint--next');
+        const skipBtn  = document.querySelector('#skip');
+        const chapter1 = document.querySelector('#chapter1');
+
+        // GSAP gère le centrage du titre (sinon le translate(-50%) CSS est figé en px)
+        gsap.set(title, { xPercent: -50, yPercent: -50, x: 0, y: 0 });
+
+        const state = {
+            approach: 0,  // 0 → 1 : avancée du fil du lecteur (scroll)
+            broken: false,
+            burst: false,
+            crack: 0,     // 0 → 1 : propagation des fissures depuis la pointe
+            core: 1,      // intensité de la lumière intérieure
+            spin: .18,    // vitesse de rotation de l'éclat
+            swallow: 0,   // 0 → 1 : le fil glisse dans l'éclat
+        };
+
+        // Aléatoire déterministe : l'éclat a toujours la même forme
+        function mulberry32(a) {
+            return () => {
+                a |= 0; a = a + 0x6D2B79F5 | 0;
+                let t = Math.imul(a ^ a >>> 15, 1 | a);
+                t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+                return ((t ^ t >>> 14) >>> 0) / 4294967296;
+            };
+        }
+        const rnd  = mulberry32(7);
+        const rand = (a, b) => a + Math.random() * (b - a);
+
+
+        // ===== Scène =====
+
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+        renderer.toneMapping = THREE.NeutralToneMapping; // garde la saturation de l'or et du rose
+        renderer.toneMappingExposure = 1;
+
+        const scene = new THREE.Scene();
+        // Fond via la scène (et pas setClearColor) : sinon le post-traitement l'éclaircit
+        scene.background = new THREE.Color(0x040507);
+
+        const camera = new THREE.PerspectiveCamera(35, 1, .1, 100);
+        camera.position.set(0, 0, 7);
+
+        // Texture ronde et douce (halos, pointe du fil)
+        function glowTexture(stops) {
+            const c = document.createElement('canvas');
+            c.width = c.height = 256;
+            const g = c.getContext('2d');
+            const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+            stops.forEach(([o, col]) => grad.addColorStop(o, col));
+            g.fillStyle = grad;
+            g.fillRect(0, 0, 256, 256);
+            const tex = new THREE.CanvasTexture(c);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            return tex;
+        }
+
+
+        // ===== Ciel étoilé (scintillement léger) =====
+
+        const starMat = new THREE.ShaderMaterial({
+            uniforms: { uTime: { value: 0 }, uPixelRatio: { value: renderer.getPixelRatio() } },
+            vertexShader: /* glsl */`
+                attribute float aSeed;
+                uniform float uTime, uPixelRatio;
+                varying float vA;
+                void main() {
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    gl_PointSize = (1.0 + fract(aSeed * 7.3) * 1.8) * uPixelRatio;
+                    vA = 0.25 + 0.3 * sin(uTime * (0.4 + fract(aSeed * 3.1)) + aSeed * 6.28);
+                }`,
+            fragmentShader: /* glsl */`
+                varying float vA;
+                void main() {
+                    float d = length(gl_PointCoord - 0.5);
+                    gl_FragColor = vec4(vec3(0.75, 0.82, 1.0) * vA * smoothstep(0.5, 0.0, d), 1.0);
+                }`,
+            transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+        });
+        {
+            const n = 1200;
+            const pos = new Float32Array(n * 3), seed = new Float32Array(n);
+            for (let i = 0; i < n; i++) {
+                const v = new THREE.Vector3().randomDirection().multiplyScalar(18 + Math.random() * 20);
+                pos.set([v.x, v.y, -Math.abs(v.z)], i * 3);
+                seed[i] = Math.random() * 100;
+            }
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            geo.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
+            scene.add(new THREE.Points(geo, starMat));
+        }
+
+
+        // ===== L'éclat d'âme =====
+        // Prisme à 6 pans + pyramide à facettes dessus et dessous, légèrement irrégulier.
+
+        const CRYSTAL = { sides: 6, radius: .5, body: .7, tipTop: 1.12, tipBot: 1.08 };
+        const SCALE = .8;
+
+        const APEX_LOCAL = new THREE.Vector3(0, CRYSTAL.body / 2 + CRYSTAL.tipTop, 0);
+        const APEX = APEX_LOCAL.clone().multiplyScalar(SCALE); // point de contact du fil
+
+        function crystalTriangles({ sides, radius, body, tipTop, tipBot }) {
+            const top = APEX_LOCAL.clone();
+            const bot = new THREE.Vector3(0, -body / 2 - tipBot, 0);
+            const ringT = [], ringB = [];
+            for (let i = 0; i < sides; i++) {
+                const a = i / sides * Math.PI * 2;
+                // Même rayon en haut et en bas : chaque face latérale reste plane (pas de pli en diagonale)
+                const r = radius * (1 + (rnd() - .5) * .12);
+                ringT.push(new THREE.Vector3(Math.cos(a) * r, body / 2, Math.sin(a) * r));
+                ringB.push(new THREE.Vector3(Math.cos(a) * r, -body / 2, Math.sin(a) * r));
+            }
+            const tris = [];
+            for (let i = 0; i < sides; i++) {
+                const j = (i + 1) % sides;
+                tris.push([top, ringT[i], ringT[j]]);
+                tris.push([ringT[i], ringB[i], ringB[j]]);
+                tris.push([ringT[i], ringB[j], ringT[j]]);
+                tris.push([bot, ringB[j], ringB[i]]);
+            }
+            // Oriente chaque face vers l'extérieur
+            return tris.map(([a, b, c]) => {
+                const n = new THREE.Vector3().crossVectors(b.clone().sub(a), c.clone().sub(a));
+                const center = a.clone().add(b).add(c).divideScalar(3);
+                return n.dot(center) < 0 ? [a, c, b] : [a, b, c];
+            });
+        }
+
+        const baseTris = crystalTriangles(CRYSTAL);
+
+        const shardGroup = new THREE.Group();
+        shardGroup.scale.setScalar(SCALE);
+        scene.add(shardGroup);
+
+        // Gemme lumineuse (shader) : facettes, reflet sur les bords (fresnel),
+        // lumière intérieure et voile qui ondule. Rendue en 2 couches : faces arrière puis avant.
+        const gem = { uTime: { value: 0 }, uCore: { value: 1 }, uGold: { value: 0 }, uFade: { value: 1 } };
+
+        function gemMaterial(side, layer) {
+            return new THREE.ShaderMaterial({
+                uniforms: { ...gem, uLayer: { value: layer } },
+                vertexShader: /* glsl */`
+                    varying vec3 vN, vV, vW;
+                    void main() {
+                        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+                        vW = (modelMatrix * vec4(position, 1.0)).xyz;
+                        vN = normalize(normalMatrix * normal);
+                        vV = -mv.xyz;
+                        gl_Position = projectionMatrix * mv;
+                    }`,
+                fragmentShader: /* glsl */`
+                    uniform float uTime, uCore, uGold, uLayer, uFade;
+                    varying vec3 vN, vV, vW;
+                    float hash(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
+                    void main() {
+                        vec3 n = normalize(vN);
+                        if (!gl_FrontFacing) n = -n;
+                        vec3 v = normalize(vV);
+                        float ndv = clamp(dot(n, v), 0.0, 1.0);
+                        float fres = pow(1.0 - ndv, 2.5);
+
+                        float facet = hash(floor(n * 8.0));
+
+                        float inner = exp(-length(vW.xz) * 2.2) * exp(-abs(vW.y) * 0.9);
+
+                        vec3 pink = vec3(0.95, 0.28, 0.58);
+                        vec3 pale = vec3(1.0, 0.72, 0.88);
+                        // Opaque : contraste marqué entre facettes, haut plus clair, bords lumineux
+                        // Lumière propre : l'éclat émet (rose lumineux, plus fort au cœur), il ne fait pas
+                        // que refléter. Les valeurs > 1 passent le seuil du bloom → il rayonne dans le noir.
+                        // Pas de reflet : ni lumière directionnelle ni point brillant, seulement une
+                        // légère variation par facette pour garder la forme lisible
+                        float facetShade = 0.78 + 0.3 * facet;
+                        vec3 col = pink * 0.88 * facetShade;
+                        col += pink * inner * uCore * 1.1;
+                        col *= 0.95;
+                        col = mix(col, vec3(1.0, 0.62, 0.22) * (0.75 + 0.5 * fres), uGold);
+
+                        float alpha = uLayer >= 1.0 ? 1.0 : (0.42 + 0.5 * fres + 0.25 * inner) * uLayer;
+                        gl_FragColor = vec4(col, clamp(alpha * uFade, 0.0, 1.0));
+                    }`,
+                side, transparent: layer < 1, depthWrite: layer >= 1,
+            });
+        }
+
+        const crystalGeo = new THREE.BufferGeometry().setFromPoints(baseTris.flat());
+        crystalGeo.computeVertexNormals();
+        // Opaque : la lumière intérieure est rendue directement sur les facettes (terme « inner » du shader)
+        const crystal = new THREE.Mesh(crystalGeo, gemMaterial(THREE.FrontSide, 1));
+        shardGroup.add(crystal);
+
+        // Lumière intérieure : halo doux au centre, vu à travers les facettes
+        const CORE_COLOR = new THREE.Color(1, .75, .9);
+        const core = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: glowTexture([[0, 'rgba(255,255,255,1)'], [.25, 'rgba(255,170,215,.55)'], [1, 'rgba(0,0,0,0)']]),
+            color: CORE_COLOR.clone(),
+            blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: .85,
+        }));
+        core.scale.set(1.1, 2.4, 1);
+        core.renderOrder = -1;
+        core.visible = false; // caché par l'éclat opaque, gardé pour régler la lueur au besoin
+        shardGroup.add(core);
+
+        // Arêtes très discrètes
+        const edgesMat = new THREE.LineBasicMaterial({
+            color: 0xffe2f1, transparent: true, opacity: .4,
+            blending: THREE.AdditiveBlending, depthWrite: false,
+        });
+        const edges = new THREE.LineSegments(new THREE.EdgesGeometry(crystalGeo), edgesMat);
+        edges.scale.setScalar(1.003); // légèrement au-dessus des faces opaques
+        edges.renderOrder = 2;
+        shardGroup.add(edges);
+
+        const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: glowTexture([[0, 'rgba(255,190,225,.5)'], [.25, 'rgba(210,110,170,.14)'], [.6, 'rgba(160,70,130,.03)'], [1, 'rgba(0,0,0,0)']]),
+            blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: .34,
+        }));
+        halo.scale.setScalar(2.7); // aura : la lueur de l'éclat dans l'obscurité
+        halo.position.z = -.6;
+        scene.add(halo);
+
+
+        // ===== Fissures =====
+        // Chaque face est découpée en morceaux irréguliers ; leurs arêtes s'allument depuis la pointe.
+
+        function splitTriangle([a, b, c]) {
+            let u = .15 + rnd() * .5, v = .15 + rnd() * .5;
+            if (u + v > .8) { const k = .8 / (u + v); u *= k; v *= k; }
+            const p = a.clone().multiplyScalar(1 - u - v).addScaledVector(b, u).addScaledVector(c, v);
+            return [[a, b, p], [b, c, p], [c, a, p]];
+        }
+        const pieceTris = baseTris.flatMap(splitTriangle);
+        const baseKeys = new Set(baseTris.flat().map(v => v.toArray().map(x => x.toFixed(3)).join(',')));
+
+        const crackMat = new THREE.ShaderMaterial({
+            uniforms: { uFront: { value: 0 }, uOpacity: { value: 1 } },
+            vertexShader: /* glsl */`
+                attribute float aDist;
+                varying float vD;
+                void main() {
+                    vD = aDist;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }`,
+            fragmentShader: /* glsl */`
+                uniform float uFront, uOpacity;
+                varying float vD;
+                void main() {
+                    float lit = smoothstep(uFront, uFront - 0.35, vD);
+                    float hot = smoothstep(uFront - 0.5, uFront, vD) * lit;
+                    vec3 col = mix(vec3(1.0, 0.78, 0.5), vec3(1.0, 0.98, 0.9), hot);
+                    gl_FragColor = vec4(col * (1.2 + hot * 2.0) * lit * uOpacity, 1.0);
+                }`,
+            transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+        });
+
+        let crackMaxDist = 0;
+        {
+            const seen = new Set(), pos = [], dist = [];
+            const key = v => v.toArray().map(x => x.toFixed(3)).join(',');
+            for (const [a, b, c] of pieceTris) {
+                for (const [p, q] of [[a, b], [b, c], [c, a]]) {
+                    const k = [key(p), key(q)].sort().join('|');
+                    if (seen.has(k)) continue;
+                    // Ignore la diagonale des faces latérales (ce n'est pas une arête de l'éclat)
+                    const diagonal = baseKeys.has(key(p)) && baseKeys.has(key(q))
+                        && Math.abs(p.y - q.y) > .5 && Math.hypot(p.x - q.x, p.z - q.z) > .01;
+                    if (diagonal) continue;
+                    seen.add(k);
+                    for (const v of [p, q]) {
+                        const o = v.clone().multiplyScalar(1.006);
+                        pos.push(o.x, o.y, o.z);
+                        const d = v.distanceTo(APEX_LOCAL);
+                        dist.push(d);
+                        crackMaxDist = Math.max(crackMaxDist, d);
+                    }
+                }
+            }
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+            geo.setAttribute('aDist', new THREE.Float32BufferAttribute(dist, 1));
+            var cracks = new THREE.LineSegments(geo, crackMat);
+            cracks.visible = false;
+            cracks.renderOrder = 3;
+            shardGroup.add(cracks);
+        }
+
+
+        // ===== Fumée d'essence d'âme =====
+        // Plan devant l'éclat, bruit fractal déformé (domain warping) qui tourbillonne et s'étend.
+
+        const smokeMat = new THREE.ShaderMaterial({
+            uniforms: { uTime: { value: 0 }, uBurst: { value: 0 }, uFade: { value: 0 }, uClear: { value: 0 } },
+            vertexShader: /* glsl */`
+                varying vec2 vP;
+                void main() {
+                    vP = position.xy;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }`,
+            fragmentShader: /* glsl */`
+                uniform float uTime, uBurst, uFade, uClear;
+                varying vec2 vP;
+
+                float hash(vec2 p) {
+                    p = fract(p * vec2(123.34, 456.21));
+                    p += dot(p, p + 45.32);
+                    return fract(p.x * p.y);
+                }
+                float noise(vec2 p) {
+                    vec2 i = floor(p), f = fract(p);
+                    vec2 u = f * f * (3.0 - 2.0 * f);
+                    return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x),
+                               mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
+                }
+                float fbm(vec2 p) {
+                    float v = 0.0, a = 0.5;
+                    mat2 m = mat2(1.6, 1.2, -1.2, 1.6);
+                    for (int i = 0; i < 5; i++) { v += a * noise(p); p = m * p; a *= 0.5; }
+                    return v;
+                }
+
+                void main() {
+                    vec2 p = vP;
+                    float r = length(p * vec2(0.9, 1.0));
+                    float t = uTime;
+
+                    // Tourbillon : plus fort au centre
+                    float ang = 1.4 * uBurst * exp(-r * 0.7) + t * 0.04;
+                    p = mat2(cos(ang), -sin(ang), sin(ang), cos(ang)) * p;
+                    p.y -= t * 0.12; // l'essence monte
+
+                    vec2 q = vec2(fbm(p * 1.1 + vec2(0.0, -t * 0.2)), fbm(p * 1.1 + vec2(5.2, 1.3) + t * 0.15));
+                    vec2 w = vec2(fbm(p * 1.3 + 3.0 * q + vec2(1.7, 9.2)), fbm(p * 1.3 + 3.0 * q + vec2(8.3, 2.8)));
+                    float n = fbm(p * 1.2 + 2.6 * w);
+
+                    // Masque : le nuage s'étend et recouvre l'éclat, puis le centre se dégage pour le titre
+                    float radius = 0.6 + uBurst * 1.8;
+                    float edge = r - radius + (n - 0.5) * 1.4;
+                    float mask = 1.0 - smoothstep(-0.8, 0.25, edge);
+                    mask *= mix(1.0, smoothstep(0.15, 1.3, r), uClear);
+
+                    // Volutes fines : crêtes du bruit (ridged) + un peu de voile
+                    float ridge = 1.0 - abs(n * 2.0 - 1.0);
+                    float d = (pow(ridge, 5.0) * 0.8 + pow(n, 3.0) * 0.35) * mask;
+                    // Cœur dense au début : la fumée recouvre l'éclat, puis s'efface avec le dégagement
+                    d += exp(-dot(vP * vec2(1.6, 0.9), vP * vec2(1.6, 0.9))) * (0.35 + 0.65 * n) * uBurst * (1.0 - uClear) * 1.4;
+
+                    vec3 ember = vec3(0.55, 0.2, 0.02);
+                    vec3 gold  = vec3(1.0, 0.62, 0.16);
+                    vec3 light = vec3(1.0, 0.88, 0.58);
+                    vec3 col = mix(ember, gold, smoothstep(0.05, 0.35, d));
+                    col = mix(col, light, smoothstep(0.45, 0.9, d));
+                    gl_FragColor = vec4(col * d * uFade, 1.0);
+                }`,
+            transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending,
+        });
+        const smoke = new THREE.Mesh(new THREE.PlaneGeometry(16, 10), smokeMat);
+        smoke.position.z = .6;
+        smoke.renderOrder = 2;
+        smoke.visible = false;
+        scene.add(smoke);
+
+
+        // ===== Étincelles et poussière d'or =====
+
+        const SPARK_N = 900;
+        const sp = {
+            pos:   new Float32Array(SPARK_N * 3),
+            vel:   new Float32Array(SPARK_N * 3),
+            color: new Float32Array(SPARK_N * 3),
+            size:  new Float32Array(SPARK_N),
+            alpha: new Float32Array(SPARK_N),
+            age:   new Float32Array(SPARK_N),
+            life:  new Float32Array(SPARK_N),
+            seed:  new Float32Array(SPARK_N),
+            mote:  new Uint8Array(SPARK_N),
+            on:    new Uint8Array(SPARK_N),
+        };
+        let sparkCursor = 0;
+
+        const sparkGeo = new THREE.BufferGeometry();
+        sparkGeo.setAttribute('position', new THREE.BufferAttribute(sp.pos, 3));
+        sparkGeo.setAttribute('aColor',   new THREE.BufferAttribute(sp.color, 3));
+        sparkGeo.setAttribute('aSize',    new THREE.BufferAttribute(sp.size, 1));
+        sparkGeo.setAttribute('aAlpha',   new THREE.BufferAttribute(sp.alpha, 1));
+
+        const sparkMat = new THREE.ShaderMaterial({
+            uniforms: { uPixelRatio: { value: renderer.getPixelRatio() } },
+            vertexShader: /* glsl */`
+                attribute vec3 aColor;
+                attribute float aSize, aAlpha;
+                uniform float uPixelRatio;
+                varying vec3 vColor;
+                varying float vAlpha;
+                void main() {
+                    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+                    gl_Position = projectionMatrix * mv;
+                    gl_PointSize = aSize * uPixelRatio * (7.0 / -mv.z);
+                    vColor = aColor;
+                    vAlpha = aAlpha;
+                }`,
+            fragmentShader: /* glsl */`
+                varying vec3 vColor;
+                varying float vAlpha;
+                void main() {
+                    float d = length(gl_PointCoord - 0.5);
+                    float a = exp(-d * d * 70.0) + 0.22 * exp(-d * d * 12.0);
+                    gl_FragColor = vec4(vColor * a * vAlpha * 1.6, 1.0);
+                }`,
+            transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+        });
+        const sparkPoints = new THREE.Points(sparkGeo, sparkMat);
+        sparkPoints.frustumCulled = false;
+        sparkPoints.renderOrder = 3;
+        scene.add(sparkPoints);
+
+        const GOLD = [new THREE.Color(0xf5b65a), new THREE.Color(0xffd98a), new THREE.Color(0xfff0c8)];
+
+        function emit(p, v, { life, size, mote = false }) {
+            const i = sparkCursor;
+            sparkCursor = (sparkCursor + 1) % SPARK_N;
+            sp.on[i] = 1;
+            sp.mote[i] = mote ? 1 : 0;
+            sp.age[i] = 0;
+            sp.life[i] = life;
+            sp.size[i] = size;
+            sp.seed[i] = Math.random() * 100;
+            sp.pos.set([p.x, p.y, p.z], i * 3);
+            sp.vel.set([v.x, v.y, v.z], i * 3);
+            const c = GOLD[Math.floor(Math.random() * GOLD.length)];
+            sp.color.set([c.r, c.g, c.b], i * 3);
+            return i;
+        }
+
+        function emitMote(delay = 0) {
+            const i = emit(
+                new THREE.Vector3(rand(-4, 4), rand(-2.4, 2.4), rand(-1.5, 1)),
+                new THREE.Vector3(rand(-.04, .04), rand(.03, .09), 0),
+                { life: rand(6, 11), size: rand(2.5, 5), mote: true },
+            );
+            sp.age[i] = -delay;
+        }
+
+        function updateSparks(dt, t) {
+            for (let i = 0; i < SPARK_N; i++) {
+                if (!sp.on[i]) continue;
+                sp.age[i] += dt;
+                if (sp.age[i] < 0) { sp.alpha[i] = 0; continue; }
+                if (sp.age[i] > sp.life[i]) {
+                    sp.on[i] = 0; sp.alpha[i] = 0;
+                    if (sp.mote[i]) emitMote(); // la poussière flotte en boucle
+                    continue;
+                }
+                const i3 = i * 3, sd = sp.seed[i];
+                const drag = Math.exp(-1.4 * dt);
+                let vx = sp.vel[i3] * drag, vy = sp.vel[i3 + 1] * drag, vz = sp.vel[i3 + 2] * drag;
+                const x = sp.pos[i3], y = sp.pos[i3 + 1];
+                vx += Math.sin(y * 1.9 + t * .8 + sd) * .25 * dt;
+                vy += (.18 + Math.cos(x * 1.4 + t * .6 + sd) * .12) * dt;
+                sp.pos[i3]     += vx * dt;
+                sp.pos[i3 + 1] += vy * dt;
+                sp.pos[i3 + 2] += vz * dt;
+                sp.vel[i3] = vx; sp.vel[i3 + 1] = vy; sp.vel[i3 + 2] = vz;
+
+                const u = sp.age[i] / sp.life[i];
+                const fadeIn = Math.min(sp.age[i] / (sp.mote[i] ? 1 : .08), 1);
+                const fadeOut = 1 - THREE.MathUtils.smoothstep(u, .5, 1);
+                const twinkle = sp.mote[i] ? .55 + .45 * Math.sin(t * 2.2 + sd) : 1;
+                sp.alpha[i] = (sp.mote[i] ? .5 : 1) * fadeIn * fadeOut * twinkle;
+            }
+            for (const name of ['position', 'aAlpha', 'aSize', 'aColor']) sparkGeo.attributes[name].needsUpdate = true;
+        }
+
+
+        // ===== Fil du lecteur =====
+        // Descend du haut de l'écran en spirale qui se resserre, jusqu'à la pointe de l'éclat.
+        // Il ondule doucement ; l'ondulation s'éteint vers la pointe.
+
+        function spinePoint(s) {
+            const rad = .95 * Math.pow(1 - s, 1.1);
+            const ang = s * Math.PI * 2.5 + .9;
+            return new THREE.Vector3(
+                Math.cos(ang) * rad,
+                THREE.MathUtils.lerp(2.45, APEX.y + .01, s),
+                Math.sin(ang) * rad * .6,
+            );
+        }
+
+        // Le tracé continue à l'intérieur de l'éclat : au contact, le fil y glisse et disparaît dedans
+        const OUTER = 90, INNER = 14;
+        const INSIDE = new THREE.Vector3(0, -.1, 0);
+        const spinePts = [
+            ...Array.from({ length: OUTER }, (_, i) => spinePoint(i / (OUTER - 1))),
+            ...Array.from({ length: INNER }, (_, j) => new THREE.Vector3(0, APEX.y + .01, 0).lerp(INSIDE, (j + 1) / INNER)),
+        ];
+        const threadCurve = new THREE.CatmullRomCurve3(spinePts);
+
+        // Le scroll fait descendre la pointe régulièrement (en hauteur), pas en longueur de fil
+        const cum = [0];
+        for (let i = 1; i < spinePts.length; i++) cum.push(cum[i - 1] + spinePts[i].distanceTo(spinePts[i - 1]));
+        const uAtIndex = f => {
+            const i = Math.min(Math.floor(f), cum.length - 2);
+            return THREE.MathUtils.lerp(cum[i], cum[i + 1], f - i) / cum[cum.length - 1];
+        };
+        const arcAt = s => uAtIndex(THREE.MathUtils.clamp(s, 0, 1) * (OUTER - 1));
+        const U_APEX = arcAt(1);
+
+        const SWAY = { fx: 10, fz: 8, sx: 1.1, sz: .8, ax: .07, az: .05 };
+        function sway(s, t, out) {
+            const env = Math.pow(1 - s, 1.5);
+            out.x += Math.sin(s * SWAY.fx - t * SWAY.sx) * SWAY.ax * env;
+            out.z += Math.cos(s * SWAY.fz - t * SWAY.sz) * SWAY.az * env;
+            return out;
+        }
+
+        const threadMat = new THREE.ShaderMaterial({
+            uniforms: { uTime: { value: 0 }, uProgress: { value: 0 }, uTail: { value: 0 }, uOpacity: { value: 1 } },
+            vertexShader: /* glsl */`
+                uniform float uTime;
+                varying float vS;
+                varying vec3 vNormal, vView;
+                void main() {
+                    vS = uv.x;
+                    vec3 p = position;
+                    float env = pow(1.0 - uv.x, 1.5);
+                    p.x += sin(uv.x * ${SWAY.fx.toFixed(1)} - uTime * ${SWAY.sx.toFixed(2)}) * ${SWAY.ax} * env;
+                    p.z += cos(uv.x * ${SWAY.fz.toFixed(1)} - uTime * ${SWAY.sz.toFixed(2)}) * ${SWAY.az} * env;
+                    vec4 mv = modelViewMatrix * vec4(p, 1.0);
+                    vNormal = normalize(normalMatrix * normal);
+                    vView = normalize(-mv.xyz);
+                    gl_Position = projectionMatrix * mv;
+                }`,
+            fragmentShader: /* glsl */`
+                uniform float uProgress, uTail, uOpacity;
+                varying float vS;
+                varying vec3 vNormal, vView;
+                void main() {
+                    if (vS > uProgress || vS < uTail) discard;
+                    float core = pow(abs(dot(vNormal, vView)), 1.5);
+                    float fadeIn = smoothstep(uTail, uTail + 0.2, vS);
+                    float tip = exp(-(uProgress - vS) * 50.0);
+                    vec3 col = mix(vec3(1.0, 0.64, 0.2), vec3(1.0, 0.95, 0.8), core * 0.6 + tip * 0.5);
+                    gl_FragColor = vec4(col * (0.5 + core * 0.9 + tip * 2.0) * fadeIn * uOpacity, 1.0);
+                }`,
+            transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+        });
+        const thread = new THREE.Mesh(new THREE.TubeGeometry(threadCurve, 420, .009, 6, false), threadMat);
+        thread.renderOrder = 1;
+        scene.add(thread);
+
+        const threadTip = new THREE.Sprite(new THREE.SpriteMaterial({
+            map: glowTexture([[0, 'rgba(255,245,220,1)'], [.2, 'rgba(255,200,110,.6)'], [1, 'rgba(0,0,0,0)']]),
+            blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, opacity: 0,
+        }));
+        threadTip.scale.setScalar(.32);
+        threadTip.renderOrder = 4;
+        scene.add(threadTip);
+
+
+        // ===== Post-traitement : bloom =====
+
+        const composer = new EffectComposer(renderer);
+        composer.addPass(new RenderPass(scene, camera));
+        const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), .5, .6, .22) // seuil bas : tout l'éclat rayonne de façon égale (faces de luminosité proche);
+        composer.addPass(bloom);
+        composer.addPass(new OutputPass());
+
+
+        // ===== Taille / responsive =====
+
+        let baseZ = 7;
+        function resize() {
+            const w = stage.clientWidth, h = stage.clientHeight;
+            renderer.setSize(w, h, false);
+            composer.setSize(w, h);
+            camera.aspect = w / h;
+            baseZ = camera.aspect < .8 ? 9.5 : 7;
+            camera.position.z = baseZ;
+            camera.updateProjectionMatrix();
+        }
+        addEventListener('resize', resize);
+        resize();
+
+        // Légère parallaxe à la souris
+        const pointer = new THREE.Vector2();
+        addEventListener('pointermove', e => {
+            pointer.set(e.clientX / innerWidth - .5, e.clientY / innerHeight - .5);
+        });
+
+
+        // ===== Le fil sort du « l » =====
+        // Le l final d'« Éveil » devient le fil : il monte, boucle au-dessus du mot de droite
+        // à gauche, redescend à gauche, souligne le mot puis plonge vers la suite. Piloté par le scroll.
+
+        const lSpan = title.querySelector('.title-l');
+        const probe = title.querySelector('.baseline-probe');
+        const lSvg  = document.querySelector('#l-thread');
+        const lPath = lSvg.querySelector('.l-path');
+        const lTip  = lSvg.querySelector('circle');
+        const loop  = { p: 0, len: 0, ready: false, tween: null };
+
+        function buildLoop() {
+            // Mesures sans transformation (offset*) : justes même si le titre est encore animé
+            const S = { width: stage.clientWidth, height: stage.clientHeight };
+            const left = title.offsetLeft - title.offsetWidth / 2;  // titre centré (xPercent: -50)
+            const top = title.offsetTop - title.offsetHeight / 2;
+            const right = left + title.offsetWidth;
+            const fs = parseFloat(getComputedStyle(title).fontSize);
+            const base = top + probe.offsetTop;                     // ligne de base du texte
+            const slant = Math.tan(13 * Math.PI / 180);             // inclinaison de l'italique
+
+            // Sommet du l (hampe inclinée comme l'italique)
+            const bx = left + lSpan.offsetLeft + lSpan.offsetWidth * .32, by = base - fs * .02;
+            const ty = base - fs * .68, tx = bx + (by - ty) * slant;
+            // Repères : une grande ellipse souple autour du mot (sa base sert de soulignement)
+            const sx = tx - 1, sy = ty;                       // départ : sommet du l, 1px à gauche
+            const ex = (left + right) / 2;
+            const yTop = top - fs * .1, yU = base + fs * .24;
+            const ey = (yTop + yU) / 2;
+            const rx = (right - left) / 2 + fs * .32, ry = (yU - yTop) / 2;
+            const K = .5523, F = .72;                         // F > K : bas plus plat, pour souligner
+            // Direction de la hampe (le fil sort du l dans son prolongement)
+            const dl = Math.hypot(tx - bx, ty - by), ux = (tx - bx) / dl, uy = (ty - by) / dl;
+
+            lSvg.setAttribute('viewBox', `0 0 ${S.width} ${S.height}`);
+
+            // Descente : grandes ondes amples et lentes jusqu'en bas de l'écran
+            const wx = ex + rx * .75;
+            const amp = Math.min(fs * .85, (S.width - wx) * .6, wx * .6);
+            const step = fs * 2.4;
+            const wave = [];
+            for (let y = ey + ry + fs * .55, k = -1; y < S.height + 20; y += step, k = -k) {
+                const c1 = wave.length ? wx + amp * k : wx;   // 1re onde : départ vertical
+                wave.push(`C ${c1} ${y + step * .36}, ${wx + amp * k} ${y + step * .64}, ${wx} ${y + step}`);
+            }
+
+            // Le fil part du sommet du l (la lettre garde sa police, elle devient seulement dorée)
+            lPath.setAttribute('d', [
+                `M ${sx} ${sy}`,
+                // monte dans le prolongement du l et rejoint le haut de l'ellipse
+                `C ${sx + ux * fs * .3} ${sy + uy * fs * .3}, ${ex + rx * .9} ${ey - ry}, ${ex} ${ey - ry}`,
+                // passe au-dessus du mot, de droite à gauche
+                `C ${ex - rx * K} ${ey - ry}, ${ex - rx} ${ey - ry * K}, ${ex - rx} ${ey}`,
+                // redescend à gauche
+                `C ${ex - rx} ${ey + ry * K}, ${ex - rx * F} ${ey + ry}, ${ex} ${ey + ry}`,
+                // souligne le mot de gauche à droite, puis s'arrondit vers le bas
+                `C ${ex + rx * F} ${ey + ry}, ${wx} ${ey + ry + fs * .1}, ${wx} ${ey + ry + fs * .55}`,
+                ...wave,
+            ].join(' '));
+            loop.len = lPath.getTotalLength();
+            lPath.style.strokeDasharray = loop.len;
+            loop.ready = true;
+            drawLoop();
+        }
+
+        function drawLoop() {
+            if (!loop.ready) return;
+            const d = loop.p * loop.len;
+            lPath.style.strokeDashoffset = loop.len - d;
+            lPath.style.opacity = loop.p > 0 ? 1 : 0;
+            const pt = lPath.getPointAtLength(d);
+            lTip.setAttribute('cx', pt.x);
+            lTip.setAttribute('cy', pt.y);
+            lTip.style.opacity = loop.p > 0 && loop.p < .995 ? 1 : 0;
+            if (loop.p > 0) hintNext.style.opacity = Math.max(0, 1 - loop.p * 6);
+        }
+
+        // Démarre une fois le titre en place : la suite du scroll fait avancer le fil
+        function startLoop() {
+            if (loop.tween) return;
+            buildLoop();
+            const y0 = scrollY;
+            const end = y0 + innerHeight * 1.3;
+            // La scène doit rester fixée jusqu'à ce que le fil arrive au bout :
+            // si le contact a eu lieu plus bas que prévu (inertie du scroll), on allonge l'intro
+            const intro = document.querySelector('#intro');
+            const pinEnd = intro.offsetTop + intro.offsetHeight - innerHeight;
+            if (end > pinEnd) {
+                intro.style.height = `${intro.offsetHeight + (end - pinEnd) + innerHeight * .1}px`;
+                ScrollTrigger.refresh();
+            }
+            loop.tween = gsap.to(loop, {
+                p: 1,
+                ease: 'none',
+                scrollTrigger: { start: y0, end, scrub: .8 },
+                onUpdate: drawLoop,
+            });
+        }
+
+        // Sans animation (passer / mouvement réduit) : fil déjà dessiné
+        function loopFinal() {
+            if (loop.tween) return;
+            document.fonts.ready.then(() => { buildLoop(); loop.p = 1; drawLoop(); });
+        }
+
+        addEventListener('resize', () => { if (loop.ready) buildLoop(); });
+        // Les mesures dépendent de la police du titre : on recalcule une fois qu'elle est chargée
+        document.fonts.ready.then(() => { if (loop.ready) buildLoop(); });
+
+
+        // ===== Séquence =====
+
+        // Blocage du scroll pendant la séquence automatique : overflow seul ne suffit pas
+        // (l'inertie d'un pavé tactile ou d'un écran tactile peut encore faire défiler)
+        const SCROLL_KEYS = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' ']);
+        const blockScroll = e => { if (e.type !== 'keydown' || SCROLL_KEYS.has(e.key)) e.preventDefault(); };
+        const lockY = { y: 0 };
+        const holdY = () => { if (scrollY !== lockY.y) scrollTo(0, lockY.y); };
+        function lockScroll() {
+            lockY.y = scrollY;
+            document.documentElement.style.overflow = 'hidden';
+            for (const t of ['wheel', 'touchmove', 'keydown']) addEventListener(t, blockScroll, { passive: false });
+            addEventListener('scroll', holdY);
+        }
+        function unlockScroll() {
+            document.documentElement.style.overflow = '';
+            for (const t of ['wheel', 'touchmove', 'keydown']) removeEventListener(t, blockScroll);
+            removeEventListener('scroll', holdY);
+        }
+
+        let sequence = null;
+
+        // 1. Approche : pilotée par le scroll, réversible tant qu'il n'y a pas contact
+        const approachTween = gsap.to(state, {
+            approach: 1,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '#intro',
+                start: 'top top',
+                end: () => '+=' + innerHeight * 1.6,
+                scrub: 1,
+                invalidateOnRefresh: true,
+            },
+            onUpdate() {
+                hintIn.style.opacity = 1 - Math.min(state.approach * 8, 1);
+                if (state.approach >= .995 && !state.broken) shatter();
+            },
+        });
+
+        // 2. Contact : point de non-retour, la suite se joue seule
+        function shatter() {
+            state.broken = true;
+            state.approach = 1;
+            approachTween.scrollTrigger?.kill();
+            approachTween.kill();
+            lockScroll();
+            hintIn.style.opacity = 0;
+
+            cracks.visible = true;
+
+            sequence = gsap.timeline()
+                // La pointe du fil s'illumine au contact
+                .to(threadTip.scale, { x: .9, y: .9, duration: .25, ease: 'power2.out' }, 0)
+                .to(threadTip.material, { opacity: 0, duration: .5 }, .2)
+                // Le fil glisse le long de son tracé et entre dans l'éclat
+                .to(state, { swallow: 1, duration: 1.1, ease: 'power2.in' }, 0)
+                // Fissures depuis la pointe, la lumière intérieure monte
+                .to(state, { crack: 1, duration: 1.15, ease: 'power1.in' }, 0)
+                .to(state, { core: 1.7, spin: .7, duration: 1.15, ease: 'power2.in' }, 0)
+                .to(halo.material, { opacity: .55, duration: 1.15, ease: 'power2.in' }, 0)
+                // Éclatement
+                .add(burst, 1.15)
+                .to(bloom, { strength: .9, duration: .1 }, 1.15)
+                .to(bloom, { strength: .5, duration: 1.6, ease: 'power2.out' }, 1.25)
+                .to(flash, { opacity: .2, duration: .07 }, 1.15)
+                .to(flash, { opacity: 0, duration: 1.2, ease: 'power2.out' }, 1.22)
+                .to(halo.material, { opacity: 0, duration: .5 }, 1.15)
+                // Pas de débris : l'éclat se dissout en or sous la fumée qui le recouvre
+                .to(gem.uGold, { value: .8, duration: .5, ease: 'power1.out' }, 1.15)
+                .to(gem.uFade, { value: 0, duration: .9, ease: 'power1.in' }, 1.3)
+                .to(shardGroup.scale, { x: SCALE * 1.12, y: SCALE * 1.12, z: SCALE * 1.12, duration: 1.4, ease: 'power2.out' }, 1.15)
+                .to(edgesMat, { opacity: 0, duration: .4 }, 1.15)
+                .to(crackMat.uniforms.uOpacity, { value: 0, duration: .6 }, 1.15)
+                // Fumée : s'étend en tourbillonnant, puis retombe en voile léger
+                .to(smokeMat.uniforms.uFade, { value: 1, duration: .3, ease: 'power2.out' }, 1.15)
+                .to(smokeMat.uniforms.uBurst, { value: 1, duration: 3.4, ease: 'power3.out' }, 1.15)
+                .to(smokeMat.uniforms.uClear, { value: 1, duration: 2.6, ease: 'power1.inOut' }, 2)
+                .to(smokeMat.uniforms.uFade, { value: .13, duration: 4.5, ease: 'power1.inOut' }, 1.6)
+                // Le titre sort de la fumée, doré, puis prend la couleur du chapitre I
+                .fromTo(title,
+                    { opacity: 0, scale: 1.1, filter: 'blur(16px)', color: '#ffe2a6', textShadow: '0 0 34px rgba(245,182,90,.85)' },
+                    { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 2.4, ease: 'power2.out' }, 2.1)
+                .to(title, { color: '#4fa9ff', textShadow: '0 0 18px rgba(79,169,255,.25)', duration: 1.8 }, 4)
+                // Le l reste doré : le fil est dedans
+                .to(lSpan, { color: '#f5c46a', textShadow: '0 0 14px rgba(245,196,106,.6)', duration: 1 }, 4)
+                .to(hintNext, { opacity: 1, duration: .8 }, 4.4)
+                .call(unlockScroll, null, 4.6)
+                .call(startLoop, null, 4.6);
+        }
+
+        function burst() {
+            state.burst = true;
+            thread.visible = false; // il est entré dans l'éclat
+            smoke.visible = true;
+            // L'éclat devient transparent pour pouvoir s'effacer
+            crystal.material.transparent = true;
+            crystal.material.depthWrite = false;
+            crystal.material.needsUpdate = true;
+            // Gerbe d'étincelles au moment de l'éclat
+            for (let i = 0; i < 160; i++) {
+                const v = new THREE.Vector3().randomDirection().multiplyScalar(rand(.8, 3));
+                v.z *= .4;
+                emit(new THREE.Vector3(0, rand(-.6, .6), 0), v, { life: rand(.8, 2), size: rand(1.5, 3.5) });
+            }
+            for (let i = 0; i < 90; i++) emitMote(rand(1, 4));
+        }
+
+        // État final, sans animation : bouton « passer » et prefers-reduced-motion
+        function finalState() {
+            if (!state.broken) {
+                state.broken = true;
+                approachTween.scrollTrigger?.kill();
+                approachTween.kill();
+                for (let i = 0; i < 90; i++) emitMote(rand(0, 2));
+            }
+            sequence?.progress(1);
+            state.burst = true;
+            shardGroup.visible = false;
+            halo.visible = false;
+            thread.visible = false;
+            threadTip.visible = false;
+            smoke.visible = true;
+            smokeMat.uniforms.uBurst.value = 1;
+            smokeMat.uniforms.uClear.value = 1;
+            smokeMat.uniforms.uFade.value = .13;
+            flash.style.opacity = 0;
+            hintIn.style.opacity = 0;
+            gsap.set(title, { opacity: 1, scale: 1, filter: 'none', color: '#4fa9ff', textShadow: '0 0 18px rgba(79,169,255,.25)' });
+            gsap.set(lSpan, { color: '#f5c46a', textShadow: '0 0 14px rgba(245,196,106,.6)' });
+            gsap.set(hintNext, { opacity: 1 });
+            unlockScroll();
+            loopFinal();
+        }
+
+        skipBtn.addEventListener('click', () => {
+            finalState();
+            chapter1.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' });
+        });
+
+        // Le bouton disparaît une fois l'intro passée
+        ScrollTrigger.create({
+            trigger: chapter1,
+            start: 'top 60%',
+            onToggle: self => skipBtn.classList.toggle('is-hidden', self.isActive),
+        });
+
+        if (reducedMotion) finalState();
+
+
+        // ===== Boucle de rendu =====
+
+        const clock = new THREE.Clock();
+        const tmp = new THREE.Vector3();
+        let visible = true;
+        new IntersectionObserver(([e]) => visible = e.isIntersecting).observe(stage);
+
+        function update(dt, t) {
+            starMat.uniforms.uTime.value = t;
+            smokeMat.uniforms.uTime.value = t;
+            threadMat.uniforms.uTime.value = t;
+            gem.uTime.value = t;
+
+            // Caméra : parallaxe douce
+            camera.position.x += (pointer.x * .35 - camera.position.x) * Math.min(dt * 2, 1);
+            camera.position.y += (-pointer.y * .25 - camera.position.y) * Math.min(dt * 2, 1);
+            camera.lookAt(0, 0, 0);
+
+            // Fil : progression + pointe lumineuse
+            const a = state.approach;
+            const head = state.broken ? THREE.MathUtils.lerp(U_APEX, 1, state.swallow) : arcAt(a);
+            threadMat.uniforms.uProgress.value = head;
+            threadMat.uniforms.uTail.value = U_APEX * state.swallow;
+            if (!state.broken) {
+                threadTip.material.opacity = a > .002 ? 1 : 0;
+                sway(head, t, threadCurve.getPointAt(Math.max(head, .001), tmp));
+                threadTip.position.copy(tmp);
+            }
+
+            if (!state.burst) {
+                // Repos : rotation lente et respiration, qui s'accélèrent à l'approche du fil
+                shardGroup.rotation.y += dt * (state.spin + a * .4);
+                shardGroup.rotation.z = Math.sin(t * .5) * .04 * (1 - a);
+                shardGroup.position.y = Math.sin(t * .8) * .05 * (1 - a);
+                // Lueur stable (pas de pulsation) : elle monte seulement à l'approche du fil
+                gem.uCore.value = state.core * (1 + a * .4);
+                core.material.color.copy(CORE_COLOR).multiplyScalar(.6 * state.core * (1 + a * .4));
+                if (!state.broken) halo.material.opacity = .34 + a * .1;
+                crackMat.uniforms.uFront.value = state.crack * (crackMaxDist + .4);
+            } else if (shardGroup.visible) {
+                // L'éclat continue de tourner en se dissolvant, et laisse échapper des étincelles
+                shardGroup.rotation.y += dt * state.spin;
+                if (Math.random() < dt * 60 * gem.uFade.value) {
+                    tmp.set(rand(-.4, .4), rand(-1, 1), rand(-.4, .4));
+                    emit(tmp, new THREE.Vector3(rand(-.4, .4), rand(0, .5), rand(-.1, .1)), { life: rand(.8, 1.8), size: rand(1.2, 2.6) });
+                }
+                if (gem.uFade.value <= 0) shardGroup.visible = false;
+            }
+
+            updateSparks(dt, t);
+        }
+
+        renderer.setAnimationLoop(() => {
+            const dt = Math.min(clock.getDelta(), .05);
+            if (!visible) return;
+            update(dt, clock.elapsedTime);
+            composer.render();
+        });
+    </script>
+</body>
+</html>

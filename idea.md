@@ -43,9 +43,28 @@ Pistes :
 - Éventuellement `@property` pour animer les variables en CSS pur.
 - Base déjà en place : `.card::before` dans `style.scss` (les `15%` à animer).
 
-#### Intro « éclat d'âme » (refonte, 2 variantes)
+#### Intro « éclat d'âme » (avant le chapitre I) — retenue
 
-- **A — Explosion** : l'éclat d'âme explose en étincelles ; derrière, une galaxie avec plusieurs morceaux de code qui représentent le sortilège et les statistiques / ma présentation.
+Séquence :
+
+1. **Repos** : écran noir, étoiles faibles. Au centre, l'éclat d'âme : cristal à facettes (prisme 6–8 pans au centre + pyramide à facettes dessus et dessous, angles vifs, pas d'arrondi), **rose éthéré**, **opaque** et lumineux, faces latérales planes (pas de diagonale), halo léger, rotation lente.
+2. **Approche** : le **fil du lecteur**, **doré** (couleur du destin), **descend du haut de l'écran** en spirale souple qui se resserre et **avance avec le scroll** jusqu'à la pointe de l'éclat (les fissures partent de ce point de contact).
+3. **Contact = point de non-retour** : le fil **glisse le long de son tracé et entre dans l'éclat** ; des fissures lumineuses partent de la pointe. L'éclat **ne peut pas être reconstitué** (seulement en rechargeant la page) : remonter ne le recrée pas.
+4. **Fumée** : pas de fragments. Une fumée d'**essence d'âme dorée** jaillit et **se répand par-dessus l'éclat**, qui se dissout en or dessous ; puis le centre se dégage.
+5. **Titre** : « l'Éveil » sort de la fumée (flou → net).
+6. **Fil du titre** : le fil absorbé par l'éclat ressort du **l final d'« Éveil »**. Le l **garde sa police** et devient doré ; le fil part de son sommet, fait une **boucle par le dessus du mot, de droite à gauche**, redescend du côté gauche, **souligne le mot** (remplace le `<hr>`) puis **descend en zigzag souple** pour inviter à suivre l'histoire.
+7. Au chapitre V (Liens), le fil du lecteur se noue au fil du Weaver.
+
+Contraintes :
+
+- **Bouton « passer »** : saute directement à l'état final (titre + fil dessiné) et descend au chapitre I. Même état final si `prefers-reduced-motion`.
+- Technique : éclat et fumée en Three.js (canvas de fond) ; variante 2D en Canvas 2D. Fil du l en SVG (`stroke-dashoffset`), calé sur la position du glyphe. Titre en vrai HTML (le l est un `<span>`). Rythme **mixte** :
+  - approche du fil du lecteur pilotée par le scroll (section `sticky` + ScrollTrigger `scrub`) ;
+  - au contact, flag « brisé » : fil absorbé, fissures, fumée et apparition du titre se jouent **automatiquement**, une seule fois (scroll bloqué pendant la séquence) ;
+  - puis la boucle du l (montée, boucle, soulignement, chute) **avance avec le scroll**.
+
+Variante écartée pour l'instant :
+
 - **B — Épuisement** : l'éclat se vide petit à petit de sa lumière, des gouttes tombent ; dans la flaque d'essence de l'âme, le reflet du ciel étoilé, avec des morceaux de code qui s'écrivent çà et là (le sortilège, la fenêtre de stats).
 
 ---
